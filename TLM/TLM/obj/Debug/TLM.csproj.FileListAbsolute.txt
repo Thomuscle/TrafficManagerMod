@@ -1,0 +1,12 @@
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\TrafficManager.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\TrafficManager.pdb
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\Assembly-CSharp-firstpass.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\Assembly-CSharp.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\ColossalManaged.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\ICities.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\UnityEngine.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\bin\Debug\UnityEngine.xml
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\obj\Debug\TLM.csprojResolveAssemblyReference.cache
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\obj\Debug\TrafficManager.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\obj\Debug\TrafficManager.pdb

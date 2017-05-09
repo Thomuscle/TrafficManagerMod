@@ -1,0 +1,15 @@
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\GlobalConfigGenerator.exe.config
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\GlobalConfigGenerator.exe
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\GlobalConfigGenerator.pdb
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\TrafficManager.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\Assembly-CSharp.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\ICities.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\UnityEngine.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\ColossalManaged.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\Assembly-CSharp-firstpass.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\TrafficManager.pdb
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\bin\Debug\UnityEngine.xml
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\obj\Debug\GlobalConfigGenerator.csprojResolveAssemblyReference.cache
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\obj\Debug\GlobalConfigGenerator.exe
+C:\Users\Jake\Desktop\Uni\P4P\TrafficManagerPE\Cities-Skylines-Traffic-Manager-President-Edition\TLM\GlobalConfigGenerator\obj\Debug\GlobalConfigGenerator.pdb
