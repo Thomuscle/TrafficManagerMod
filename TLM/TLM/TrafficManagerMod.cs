@@ -13,12 +13,13 @@ namespace TrafficManager {
 		public static readonly uint GameVersionC = 3u;
 		public static readonly uint GameVersionBuild = 1u;
 
-		public string Name => "Traffic Manager: President Edition";
+		public string Name => "Traffic Manager: Partha Edition";
 
 		public string Description => "Manage your city's traffic";
 
 		public void OnEnabled() {
 			Log._Debug("TrafficManagerMod Enabled");
+
 		}
 
 		public void OnDisabled() {

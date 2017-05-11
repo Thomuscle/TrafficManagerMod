@@ -1,0 +1,15 @@
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\TrafficManager.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\TrafficManager.pdb
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\Assembly-CSharp-firstpass.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\Assembly-CSharp.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\ColossalManaged.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\ICities.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\ICSharpCode.SharpZipLib.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\Mono.Posix.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\Mono.Security.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\UnityEngine.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\UnityEngine.Networking.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\UnityEngine.UI.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Release\UnityEngine.xml
+E:\VSMods\TrafficManagerMod\TLM\TLM\obj\Release\TrafficManager.dll
+E:\VSMods\TrafficManagerMod\TLM\TLM\obj\Release\TrafficManager.pdb
