@@ -118,7 +118,23 @@ namespace TrafficManager.TrafficLight {
 			return step;
 		}
 
-		public void Start() {
+        public TimedTrafficLightsStep AddStep(int minTime, int maxTime, float waitFlowBalance, ushort segID, bool makeRed = false)
+        {
+            // TODO [version 1.9] currently, this method must be called for each node in the node group individually
+
+            if (minTime < 0)
+                minTime = 0;
+            if (maxTime <= 0)
+                maxTime = 1;
+            if (maxTime < minTime)
+                maxTime = minTime;
+
+            TimedTrafficLightsStep step = new TimedTrafficLightsStep(this, minTime, maxTime, waitFlowBalance, segID, makeRed);
+            Steps.Add(step);
+            return step;
+        }
+
+        public void Start() {
 			// TODO [version 1.9] currently, this method must be called for each node in the node group individually
 
 			/*if (!housekeeping())

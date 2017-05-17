@@ -25,3 +25,4 @@ E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Debug\UnityEngine.UI.dll
 E:\VSMods\TrafficManagerMod\TLM\TLM\bin\Debug\UnityEngine.xml
 E:\VSMods\TrafficManagerMod\TLM\TLM\obj\Debug\TrafficManager.dll
 E:\VSMods\TrafficManagerMod\TLM\TLM\obj\Debug\TrafficManager.pdb
+E:\VSMods\TrafficManagerMod\TLM\TLM\obj\Debug\TLM.csprojResolveAssemblyReference.cache

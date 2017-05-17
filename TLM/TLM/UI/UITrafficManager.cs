@@ -180,7 +180,7 @@ namespace TrafficManager.UI {
 			height += 40;
 #endif
 
-            _buttonAffectAllTraffic = _createButton("Toggle All Traffic Lights", y, clickToggleAllTrafficLights);
+            _buttonAffectAllTraffic = _createButton("Toggle All: Round-Robin ", y, clickToggleAllTrafficLights);
             y += 40;
             height += 40;
 		}
@@ -526,39 +526,68 @@ namespace TrafficManager.UI {
                 if (hasLights)
                 {
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
-
                     if (_areAllTrafficLightsRed)
                     {
-                        sim.DestroyManualTrafficLight();
-                    }else
-                    {
-                        sim.SetupManualTrafficLight();
-
-                        for (ushort j = 0; j < 8; j++)
-                        {
-
-                            ushort segment = node.GetSegment(j);
-                            if (segment != 0)
-                            {
-                                NetSegment s = netManager.m_segments.m_buffer[segment];
-                                //ushort seg = node.GetSegment(j);
-
-                                RoadBaseAI.GetTrafficLightState(i, ref s, frame - 256u, out vLightState, out pLightState, out vehicles, out pedestrians);
-
-                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Output: " + vLightState);
-
-                                RoadBaseAI.SetTrafficLightState(i, ref s, frame - 256u, RoadBaseAI.TrafficLightState.Red, pLightState, vehicles, pedestrians);
-
-                                RoadBaseAI.GetTrafficLightState(i, ref s, frame - 256u, out vLightState, out pLightState, out vehicles, out pedestrians);
-
-                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Output after change: " + vLightState);
-
-
-                            }
-
-                        }
+                        sim.DestroyTimedTrafficLight();
                     }
-                    
+                    else
+                    {
+
+                        List<ushort> nodeGroup = new List<ushort>();
+                        nodeGroup.Add(i);
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
+                        sim.SetupTimedTrafficLight(nodeGroup);
+                        NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+
+
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+
+                            sim.TimedLight.AddStep(5, 5, 1f, end.SegmentId);
+                        }
+
+
+                        sim.TimedLight.Start();
+                    }
+                    // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Output after change: ");
+
+
+                    //if (_areAllTrafficLightsRed)
+                    //{
+                    //    sim.DestroyManualTrafficLight();
+                    //}else
+                    //{
+                    //    sim.SetupManualTrafficLight();
+
+                    //    for (ushort j = 0; j < 8; j++)
+                    //    {
+
+                    //        ushort segment = node.GetSegment(j);
+                    //        if (segment != 0)
+                    //        {
+                    //            NetSegment s = netManager.m_segments.m_buffer[segment];
+                    //            //ushort seg = node.GetSegment(j);
+
+
+
+                    //            RoadBaseAI.GetTrafficLightState(i, ref s, frame - 256u, out vLightState, out pLightState, out vehicles, out pedestrians);
+
+                    //            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Output: " + vLightState);
+
+                    //            RoadBaseAI.SetTrafficLightState(i, ref s, frame - 256u, RoadBaseAI.TrafficLightState.Red, pLightState, vehicles, pedestrians);
+
+                    //            RoadBaseAI.GetTrafficLightState(i, ref s, frame - 256u, out vLightState, out pLightState, out vehicles, out pedestrians);
+
+                    //            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Output after change: " + vLightState);
+
+
+                    //        }
+
+                    //    }
+                    //}
+
                 }
 
             }

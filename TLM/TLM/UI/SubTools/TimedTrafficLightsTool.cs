@@ -11,7 +11,7 @@ using TrafficManager.TrafficLight;
 using UnityEngine;
 using TrafficManager.Manager;
 using TrafficManager.Traffic;
-
+using ColossalFramework.Plugins;
 namespace TrafficManager.UI.SubTools {
 	public class TimedTrafficLightsTool : SubTool {
 		private readonly GUIStyle _counterStyle = new GUIStyle();
@@ -458,7 +458,10 @@ namespace TrafficManager.UI.SubTools {
 						_stepMaxValue = oldStepMaxValue;
 
 					if (GUILayout.Button(Translation.GetString("Add"), GUILayout.Width(70))) {
-						foreach (var sim in SelectedNodeIndexes.Select(tlsMan.GetNodeSimulation)) {
+                        
+                        foreach (var sim in SelectedNodeIndexes.Select(tlsMan.GetNodeSimulation)) {
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Index: " + SelectedNodeIndexes.Select(tlsMan.GetNodeSimulation));
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Individual Index: " + sim.NodeId);
 							if (_stepMinValue < 0)
 								_stepMinValue = 0;
 							if (_stepMaxValue <= 0)

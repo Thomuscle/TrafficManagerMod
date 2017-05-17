@@ -11,6 +11,7 @@ using TrafficManager.Custom.AI;
 using TrafficManager.Traffic;
 using TrafficManager.Manager;
 using TrafficManager.State;
+using ColossalFramework.Plugins;
 
 namespace TrafficManager.TrafficLight {
 	// TODO class marked for complete rework in version 1.9
@@ -74,16 +75,78 @@ namespace TrafficManager.TrafficLight {
 
 			NodeGeometry nodeGeometry = NodeGeometry.Get(timedNode.NodeId);
 
-			foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries) {
+          
+            foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries) {
 				if (end == null)
 					continue;
-				
-				addSegment(end.SegmentId, end.StartNode, makeRed);
+                
+                addSegment(end.SegmentId, end.StartNode, makeRed);
 			}
 			calcMaxSegmentLength();
 		}
 
-		internal void calcMaxSegmentLength() {
+        public TimedTrafficLightsStep(TimedTrafficLights timedNode, int minTime, int maxTime, float waitFlowBalance, ushort segID, bool makeRed = false)
+        {
+            this.minTime = minTime;
+            this.maxTime = maxTime;
+            this.waitFlowBalance = waitFlowBalance;
+            this.timedNode = timedNode;
+
+            minFlow = Single.NaN;
+            maxWait = Single.NaN;
+
+            endTransitionStart = null;
+            stepDone = false;
+
+            NodeGeometry nodeGeometry = NodeGeometry.Get(timedNode.NodeId);
+
+                foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+
+            {
+                if (end == null || end.OutgoingOneWay) 
+                    {
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "end = null");
+
+                        continue;
+                    }
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "segment: " + end.SegmentId+ " : " + end.OutgoingOneWay);
+                CustomSegmentLights clonedLights = (CustomSegmentLights)CustomSegmentLightsManager.Instance.GetOrLiveSegmentLights(end.SegmentId, end.StartNode).Clone();
+
+                    segmentLights.Add(end.SegmentId, clonedLights);
+
+                if (end.SegmentId == segID)
+                    {
+                       // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "segment1: " + end.SegmentId + " segment2: " + segID + " Green");
+                        foreach (CustomSegmentLight light in segmentLights[end.SegmentId].CustomLights.Values)
+                        {
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Before Green");
+                            light.LightLeft = RoadBaseAI.TrafficLightState.Green;
+                            light.LightMain = RoadBaseAI.TrafficLightState.Green;
+                            light.LightRight = RoadBaseAI.TrafficLightState.Green;
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "After Green");
+                        }
+                    }
+                    else
+                    {
+                       // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "segment1: " + end.SegmentId + " segment2: " + segID + " Red");
+                        foreach (CustomSegmentLight light in segmentLights[end.SegmentId].CustomLights.Values)
+                        {
+                            light.LightLeft = RoadBaseAI.TrafficLightState.Red;
+                            light.LightMain = RoadBaseAI.TrafficLightState.Red;
+                            light.LightRight = RoadBaseAI.TrafficLightState.Red;
+                        }
+                    }
+
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Before add");
+                addSegment(end.SegmentId, end.StartNode, makeRed);
+               // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "After add");
+            }
+                
+            
+            calcMaxSegmentLength();
+        }
+
+        internal void calcMaxSegmentLength() {
 			maxSegmentLength = 0;
 			for (var s = 0; s < 8; s++) {
 				var segmentId = Singleton<NetManager>.instance.m_nodes.m_buffer[timedNode.NodeId].GetSegment(s);
@@ -371,10 +434,11 @@ namespace TrafficManager.TrafficLight {
 		internal void addSegment(ushort segmentId, bool startNode, bool makeRed) {
 			CustomSegmentLights clonedLights = (CustomSegmentLights)CustomSegmentLightsManager.Instance.GetOrLiveSegmentLights(segmentId, startNode).Clone();
 
-			segmentLights.Add(segmentId, clonedLights);
+			//segmentLights.Add(segmentId, clonedLights); Need to make another method with this commented out and then uncomment this.
 			if (makeRed)
 				segmentLights[segmentId].MakeRed();
 			else
+                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "inside add segment");
 				segmentLights[segmentId].MakeRedOrGreen();
 			clonedLights.LightsManager = this;
 		}
