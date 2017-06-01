@@ -1,0 +1,173 @@
+Switch_traffic_lights Włącznik sygnalizacji
+Add_priority_signs Dodaj znaki pierwszeństwa
+Manual_traffic_lights Sygnalizacja Ręczna
+Timed_traffic_lights Sygnalizacja Czasowa
+Change_lane_arrows Zmień strzałki pasów
+Clear_Traffic Wyczyść ruch
+Disable_despawning Zablokuj znikanie pojazdów
+Enable_despawning Odblokuj znikanie pojazdów
+NODE_IS_LIGHT Skrzyżowanie posiada sygnalizację. \nUsuń sygnalizację poprzez "Włącznik sygnalizacji" i kliknięcie na tym węźle.
+NODE_IS_TIMED_LIGHT Skrzyżowanie jest częścią skryptu czasowego. \nWybierz "Sygnalizacja Czasowa", najpierw kliknij na tym węźle i potem na "Usuń".
+Select_nodes_windowTitle Wybór węzłów
+Select_nodes Wybierz węzły
+Node Węzeł
+Deselect_all_nodes Odznacz wszystkie węzły
+Setup_timed_traffic_light Ustaw czasową sygnalizację świetlną
+State Stan
+Skip Pomiń
+up w górę
+down w dół
+View Wyświetl
+Edit Edytuj
+Delete Skasuj
+Timed_traffic_lights_manager Menedżer Sygnalizacji czasowej
+Add_step Dodaj krok
+Remove_timed_traffic_light Usuń sygnalizację czasową
+Min._Time: Min. Czas:
+Max._Time: Max. Czas:
+Save Zapisz
+Add Dodaj
+Sensitivity Czułość
+Very_Low Bardzo niska
+Low Niska
+Medium Średnia
+High Wysoka
+Very_high Bardzo wysoka
+Extreme_long_green/red_phases Ekstremalnie długi ziel./czerw.
+Very_long_green/red_phases Bardzo długi ziel./czerw.
+Long_green/red_phases Długi ziel./czerw.
+Moderate_green/red_phases Średni okres ziel./czerw.
+Short_green/red_phases Krótki ziel./czerw.
+Very_short_green/red_phases Bardzo krótki ziel./czerw.
+Extreme_short_green/red_phases Ekstremalnie krótki ziel./czerw.
+Hide_counters Ukryj liczniki
+Show_counters Pokaż liczniki
+Start Start
+Stop Stop
+Enable_test_mode_(stay_in_current_step) Aktywuj tryb testu (pozostań w tym kroku)
+avg._flow śr. przepływ
+avg._wait śr. oczekiwanie
+min/max min/max
+Lane Pas
+Set_Speed Ustaw Prędkość {0}
+Max_speed Max Prędkość
+Segment Segment
+incoming nadjeżdżające
+Enable_Advanced_Vehicle_AI Włącz Zaawansowaną Sztuczną Inteligencję Pojazdów
+Vehicles_may_enter_blocked_junctions Pojazdy mogą wjeżdżać na zablokowane skrzyżowania
+All_vehicles_may_ignore_lane_arrows Wszystkie pojazdy mogą ignorować strzałki pasów
+Busses_may_ignore_lane_arrows Autobusy mogą ignorować strzałki pasów
+Reckless_driving Lekkomyślna jazda (funkcja w wer. BETA)
+TMPE_Title Menedżer ruchu: Edycja Prezydencka
+Settings_are_defined_for_each_savegame_separately ustawienia są definiowane oddzielnie dla każdego zapisu
+Simulation_accuracy Dokładność symulacji (większa dokładność zmiejsza wydajność gry)
+Enable_highway_specific_lane_merging/splitting_rules Aktywuj Zmienione zasady podziału/łączenia pasów dla autostrad
+Drivers_want_to_change_lanes_(only_applied_if_Advanced_AI_is_enabled): Chęć kierowców do zmiany pasa (tylko gdy Zaawansowana SI jest włączona)
+Maintenance Konserwacja (dodatkowe informacje)
+Very_often Bardzo często
+Often Często
+Sometimes Czasami
+Rarely Rzadko
+Very_rarely Bardzo Rzadko
+Only_if_necessary Tylko jeśli konieczna
+Nodes_and_segments Pokaż węzły i segmenty
+Lanes Pasy
+Path_Of_Evil_(10_%) Diabelska Ścieżka (10 %)
+Rush_Hour_(5_%) Godziny Szczytu (5 %)
+Minor_Complaints_(2_%) Drobne Skargi (2 %)
+Holy_City_(0_%) Święte Miasto (0 %)
+Forget_toggled_traffic_lights Zapomnij ustawione sygnalizacje
+Road_is_already_in_a_group! Droga jest już w grupie
+All_selected_roads_must_be_of_the_same_type! Wszystkie zaznaczone drogi muszą być tego samego typu
+Create_group Stwórz grupę
+Delete_group Skasuj grupę
+Add_zoning Aktywuj Strefy
+Remove_zoning Skasuj Strefy
+Lane_Arrow_Changer_Disabled_Highway Zmiana strzałek pasów została wyłączona dla tego pasa ponieważ aktywowałeś/łaś Zmienione zasady łączenia pasów dla Autostrad
+Add_junction_to_timed_light Dodaj skrzyżowanie do tego węzła sygnalizacji
+Remove_junction_from_timed_light Wyklucz skrzyżowanie z tego węzła sygnalizacji
+Select_junction Wybierz skrzyżowanie
+Cancel Anuluj
+Speed_limits Ograniczenia prędkości
+Persistently_visible_overlays Trwale widoczne nakładki
+Priority_signs Znaki pierwszeństwa
+Vehicles_may_do_u-turns_at_junctions Pojazdy mogą zawracać na skrzyżowaniach
+Vehicles_going_straight_may_change_lanes_at_junctions Pojazdy jadące na wprost mogą zmieniać pasy ruchu na skrzyżowaniach
+Allow_u-turns Zezwól na zawracanie
+Allow_lane_changing_for_vehicles_going_straight Zezwól na zmianę pasa ruchu dla pojazdów jadących na wprost
+Allow_vehicles_to_enter_a_blocked_junction Zezwól pojazdom na wjazd na zablokowane skrzyżowanie
+Road_condition_has_a_bigger_impact_on_vehicle_speed Kondycja nawierzchni drogi ma większy wpływ na prędkość pojazdu
+Vehicle_restrictions Ograniczenia ruchu pojazdów
+Copy Kopiuj
+Paste Wklej
+Invert Odwróć
+Apply_vehicle_restrictions_to_all_road_segments_between_two_junctions Zastosuj ograniczenia ruchu pojazdów do wszystkich segmentów drogi pomiędzy dwoma skrzyżowaniami
+Allow_all_vehicles Zezwól dla wszystkich pojazdów
+Ban_all_vehicles Zablokuj dla wszystkich pojazdów
+Set_all_traffic_lights_to_red Ustaw wszystkie sygnalizatory na sygnał czerwony
+Rotate_left Obróć w lewo
+Rotate_right Obróć w prawo
+Name Nazwa
+Apply Zastosuj
+Select_a_timed_traffic_light_program Wybierz program dla czasowej sygnalizacji świetlnej
+The_chosen_traffic_light_program_is_incompatible_to_this_junction Wybrany szablon sygnalizacji jest niekompatybilny z tym skrzyżowaniem
+Advanced_AI_cannot_be_activated Nie można włączyć Zaawansowanej SI
+The_Advanced_Vehicle_AI_cannot_be_activated Zaawansowana SI nie może zostać włączona, ponieważ aktywowana została inna modyfikacja zmieniająca zachowanie pojazdów (np:. Improved AI lub Traffic++).
+Enable_dynamic_path_calculation Aktywuj dynamiczne wyznaczanie ścieżki
+Lane_Arrow_Changer_Disabled_Connection Zmiana strzałek pasów ruchu jest niedostępna, ponieważ pasy ruchu zostały połączone ręcznie.
+Lane_connector Połącz pasy ruchu
+Connected_lanes Connected lanes
+Use_alternative_view_mode Użyj alternatywnego widoku
+Road_type Typ drogi
+Default_speed_limit Domyślny limit prędkości
+Unit_system System jednostek
+Metric Metryczne
+Imperial Imperialne
+Use_more_CPU_cores_for_route_calculation_if_available Użyj więcej rdzeni procesora do obliczania tras (jeśli dostępne)
+Activated_features Aktywowane funkcje
+Junction_restrictions Ograniczenia na skrzyżowaniach
+Prohibit_spawning_of_pocket_cars Zabroń używania "kieszonkowych samochodów"
+Reset_stuck_cims_and_vehicles Zresetuj zablokowane samochody i ludzi
+Default_speed_limits Standardowe limity prędkości
+Looking_for_a_parking_spot Poszukuje miejsca parkingowego
+Driving_to_a_parking_spot Jedzie do miejsca parkingowego
+Driving_to_another_parking_spot Jedzie do innego miejsca parkingowego
+Entering_vehicle Wsiada do samochodu
+Walking_to_car Idzie do samochodu
+Using_public_transport Używa transportu publicznego
+Walking Idzie
+Thinking_of_a_good_parking_spot Myśli o odpowiednim miejscem parkingowym
+Switch_view Zmień widok
+Outgoing_demand Zapotrzebowanie - wychodzące
+Incoming_demand Zapotrzebowanie - przychodzące
+Advanced_Vehicle_AI Zaawansowana SI pojazdów
+Heavy_trucks_prefer_outer_lanes_on_highways Samochody ciężarowe preferują zewnętrzne pasy na autostradach
+Parking_AI SI parkowania
+Enable_more_realistic_parking Aktywuj bardziej realistyczny system parkowania samochodów
+Reset_custom_speed_limits Zresetuj limity prędkości użytkownika
+Reload_global_configuration Przeładuj ustawienia globalne
+Reset_global_configuration Zresetuj ustawienia globalne
+General Ogólne
+Gameplay Rozgrywka
+Overlays Nakładki
+Realistic_speeds Realistyczne prędkości
+Evacuation_busses_may_ignore_traffic_rules Autobusy ewakuacyjne mogą ignorować przepisy
+Evacuation_busses_may_only_be_used_to_reach_a_shelter Autobusy ewakuacyjne mogą przewozić tylko do schroniena
+Vehicle_behavior Zachowanie pojazdu
+Policies_&_Restrictions Zasady i Ograniczenia
+At_junctions Na strzyżowaniach
+In_case_of_emergency W sytuacjach nadzwyczajnych
+Show_lane-wise_speed_limits Pokaz limity prędkości dla pasów
+Language Język
+Game_language Język gry
+requires_game_restart wymagane ponowne uruchomienie gry
+Customizations_come_into_effect_instantaneously Modyfikacje ustawień mają natychmiastowy efekt
+Options Opcje
+Lock_main_menu_button_position Zablokuj pozycję przycisku menu głównego
+Lock_main_menu_position Zablokuj pozycję menu głównego
+Recalculating_lane_routing Ponowne obliczanie tras
+Please_wait Proszę czekać
+Parking_restrictions Ograniczenia parkingowe
+Simulation Symulacja
+On_roads Na drogach
+Ban_private_cars_and_trucks_on_bus_lanes Zakaz jazdy buspasem dla samochodów osobowych i ciężarówek
