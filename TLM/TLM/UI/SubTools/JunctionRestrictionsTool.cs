@@ -13,6 +13,7 @@ using TrafficManager.TrafficLight;
 using TrafficManager.Util;
 using UnityEngine;
 using TrafficManager.Manager;
+using CSUtil.Commons;
 
 namespace TrafficManager.UI.SubTools {
 	public class JunctionRestrictionsTool : SubTool {
@@ -67,14 +68,18 @@ namespace TrafficManager.UI.SubTools {
 				currentRestrictedNodeIds.Add(SelectedNodeId);
 			}
 
-			bool stateUpdated = false;
+			ushort updatedNodeId = 0;
 			bool handleHovered = false;
 			bool cursorInPanel = this.IsCursorInPanel();
 			foreach (ushort nodeId in currentRestrictedNodeIds) {
+				if (!Constants.ServiceFactory.NetService.IsNodeValid(nodeId)) {
+					continue;
+				}
+
 				Vector3 nodePos = netManager.m_nodes.m_buffer[nodeId].m_position;
 				var diff = nodePos - camPos;
 
-				if (diff.magnitude > TrafficManagerTool.PriorityCloseLod)
+				if (diff.magnitude > TrafficManagerTool.MaxOverlayDistance)
 					continue; // do not draw if too distant
 
 				Vector3 screenPos = Camera.main.WorldToScreenPoint(nodePos);
@@ -92,13 +97,15 @@ namespace TrafficManager.UI.SubTools {
 				if (drawSignHandles(nodeId, viewOnlyNode, !cursorInPanel, ref camPos, out update))
 					handleHovered = true;
 
-				if (update)
-					stateUpdated = true;
+				if (update) {
+					updatedNodeId = nodeId;
+				}
 			}
 			overlayHandleHovered = handleHovered;
 
-			if (stateUpdated)
-				RefreshCurrentRestrictedNodeIds();
+			if (updatedNodeId != 0) {
+				RefreshCurrentRestrictedNodeIds(updatedNodeId);
+			}
 		}
 
 		public override void OnPrimaryClickOverlay() {
@@ -124,18 +131,29 @@ namespace TrafficManager.UI.SubTools {
 		}
 
 		public override void Cleanup() {
-			RefreshCurrentRestrictedNodeIds();
+			
 		}
 
 		public override void Initialize() {
 			Cleanup();
+			if (Options.junctionRestrictionsOverlay) {
+				RefreshCurrentRestrictedNodeIds();
+			} else {
+				currentRestrictedNodeIds.Clear();
+			}
 		}
 
-		private void RefreshCurrentRestrictedNodeIds() {
-			currentRestrictedNodeIds.Clear();
-			for (uint nodeId = 1; nodeId < NetManager.MAX_NODE_COUNT; ++nodeId) {
-				if ((Singleton<NetManager>.instance.m_nodes.m_buffer[nodeId].m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
+		private void RefreshCurrentRestrictedNodeIds(ushort forceNodeId=0) {
+			if (forceNodeId == 0) {
+				currentRestrictedNodeIds.Clear();
+			} else {
+				currentRestrictedNodeIds.Remove(forceNodeId);
+			}
+
+			for (uint nodeId = (forceNodeId == 0 ? 1u : forceNodeId); nodeId <= (forceNodeId == 0 ? NetManager.MAX_NODE_COUNT - 1 : forceNodeId); ++nodeId) {
+				if (!Constants.ServiceFactory.NetService.IsNodeValid((ushort)nodeId)) {
 					continue;
+				}
 
 				if (JunctionRestrictionsManager.Instance.HasJunctionRestrictions((ushort)nodeId))
 					currentRestrictedNodeIds.Add((ushort)nodeId);
@@ -146,7 +164,7 @@ namespace TrafficManager.UI.SubTools {
 			bool hovered = false;
 			stateUpdated = false;
 
-			if (viewOnly && !Options.junctionRestrictionsOverlay && TrafficManagerTool.GetToolMode() != ToolMode.JunctionRestrictions)
+			if (viewOnly && !Options.junctionRestrictionsOverlay && MainTool.GetToolMode() != ToolMode.JunctionRestrictions)
 				return false;
 
 			NetManager netManager = Singleton<NetManager>.instance;
@@ -160,6 +178,10 @@ namespace TrafficManager.UI.SubTools {
 					continue;
 
 				SegmentGeometry geometry = SegmentGeometry.Get(segmentId);
+				if (geometry == null) {
+					Log.Error($"JunctionRestrictionsTool.drawSignHandles: No geometry information available for segment {segmentId}");
+					continue;
+				}
 				bool startNode = geometry.StartNodeId() == nodeId;
 				bool incoming = geometry.IsIncoming(startNode);
 
@@ -180,7 +202,7 @@ namespace TrafficManager.UI.SubTools {
 				Vector3 centerStart = nodePos + yu * (viewOnly ? 5f : 14f);
 				Vector3 zero = centerStart - 0.5f * (float)(numSignsPerRow-1) * f * xu; // "top left"
 				if (viewOnly) {
-					if (TrafficPriorityManager.IsLeftHandDrive())
+					if (Constants.ServiceFactory.SimulationService.LeftHandDrive)
 						zero -= xu * 8f;
 					else
 						zero += xu * 8f;
@@ -193,7 +215,7 @@ namespace TrafficManager.UI.SubTools {
 				// draw "lane-changing when going straight allowed" sign at (0; 0)
 				bool allowed = JunctionRestrictionsManager.Instance.IsLaneChangingAllowedWhenGoingStraight(segmentId, startNode);
 				if (incoming && (!viewOnly || allowed != Options.allowLaneChangesWhileGoingStraight)) {
-					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TrafficLightToolTextureResources.LaneChangeAllowedTexture2D : TrafficLightToolTextureResources.LaneChangeForbiddenTexture2D, out signHovered);
+					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.LaneChangeAllowedTexture2D : TextureResources.LaneChangeForbiddenTexture2D, out signHovered);
 					if (signHovered && handleClick) {
 						hovered = true;
 						if (MainTool.CheckClicked()) {
@@ -211,7 +233,7 @@ namespace TrafficManager.UI.SubTools {
 				// draw "u-turns allowed" sign at (1; 0)
 				allowed = JunctionRestrictionsManager.Instance.IsUturnAllowed(segmentId, startNode);
 				if (incoming && (!viewOnly || allowed != Options.allowUTurns)) {
-					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TrafficLightToolTextureResources.UturnAllowedTexture2D : TrafficLightToolTextureResources.UturnForbiddenTexture2D, out signHovered);
+					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.UturnAllowedTexture2D : TextureResources.UturnForbiddenTexture2D, out signHovered);
 					if (signHovered && handleClick) {
 						hovered = true;
 
@@ -231,7 +253,7 @@ namespace TrafficManager.UI.SubTools {
 				// draw "entering blocked junctions allowed" sign at (0; 1)
 				allowed = JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segmentId, startNode);
 				if (incoming && (!viewOnly || allowed != Options.allowEnterBlockedJunctions)) {
-					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TrafficLightToolTextureResources.EnterBlockedJunctionAllowedTexture2D : TrafficLightToolTextureResources.EnterBlockedJunctionForbiddenTexture2D, out signHovered);
+					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.EnterBlockedJunctionAllowedTexture2D : TextureResources.EnterBlockedJunctionForbiddenTexture2D, out signHovered);
 					if (signHovered && handleClick) {
 						hovered = true;
 
@@ -250,7 +272,7 @@ namespace TrafficManager.UI.SubTools {
 				// draw "pedestrian crossing allowed" sign at (1; 1)
 				allowed = JunctionRestrictionsManager.Instance.IsPedestrianCrossingAllowed(segmentId, startNode);
 				if (!viewOnly || !allowed) {
-					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TrafficLightToolTextureResources.PedestrianCrossingAllowedTexture2D : TrafficLightToolTextureResources.PedestrianCrossingForbiddenTexture2D, out signHovered);
+					DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.PedestrianCrossingAllowedTexture2D : TextureResources.PedestrianCrossingForbiddenTexture2D, out signHovered);
 					if (signHovered && handleClick) {
 						hovered = true;
 

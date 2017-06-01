@@ -3,7 +3,79 @@ A work-in-progress modification for **Cities: Skylines** to add additional traff
 
 User manual: http://www.viathinksoft.de/tmpe
 
-# Changelog
+# Changelog      
+1.9.6, 05/28/2017
+- Updated Simplified Chinese translation
+- Bugfix: Vehicles cannot perform u-turns at junctions with only one outgoing segment (thanks to @Sunbird for reporting this issue)
+- Bugfix: Path-finding costs for large distances exceed the maximum allowed value (thanks to @Huitsi for reporting this issue)
+- Bugfix: Under certain circumstances path-finding at railroad crossings allow switching from road to rail tracks. 
+
+1.9.5, 05/24/2017
+- Updated for game version 1.7.1-f1
+- Updated Polish, Korean and Italian translation
+- Language can now be switched without requiring a game restart
+- Bugfix: Routing calculation does not work as expected for one-way roads with tram tracks (thanks to @bigblade66, @Battelman2 and @AS_ for reporting and providing extensive information)
+- Bugfix: Copying timed traffic lights lead to inconsistent internal states which causes timed traffic lights to be omitted during the save process (thanks to @jakeroot and @t1a2l for reporting this issue)
+- Bugfix: In certain situations unnecessary vehicle-seperate traffic lights are being created
+- Bugfix: Upgrading a train track segment next to a timed traffic light causes trains to ignore the traffic light
+- Hotfix: Cable cars despawn at end-of-line stations
+
+1.9.4, 05/23/2017
+- New option: Ban private cars and trucks on bus lanes
+- Updated Spanish and French translation 
+- Optimized path-finding
+- Increased path-finding cost for private cars driving on bus lanes
+- Increased path-finding cost for disregarding vehicle restrictions 
+- Bugfix: Path-finding is unable to calculate certain paths after modifying the road network
+
+1.9.3, 05/22/2017
+- Disabled notification of route recalculating because some players report crashes
+- Removed default vehicle restrictions from bus lanes
+- Modified junction restrictions come into effect instantaneously
+- UI: Saving a timed step does not reset the timed traffic light to the first state
+- Bugfix: AI: Segment traffic data is not taken into account 
+- Bugfix: Priority rules are not properly obeyed
+- Bugfix: Under certain circumstances priority signs cannot be removed 
+- Bugfix: Path-finding is unable to calculate certain paths
+
+1.9.2, 05/20/2017
+- UI: Main menu & UI tools performance improved
+- Bugfix: Traffic lights can be removed from junctions that are controlled by a timed traffic light program
+
+1.9.1, 05/19/2017
+- Updated French, Dutch and Korean translation
+- Bugfix: Using the vanilla traffic light toggling feature crashes the game if TMPE's main menu has not been opened at least once
+- Bugfix: AI: More car traffic and less public transportation present than in vanilla
+
+1.9.0, 05/18/2017
+- Updated for game version 1.7.0-f5
+- New feature: Parking restrictions
+- New feature: Speed limits can be set up for individual lanes with the Control key
+- New feature: Added timed traffic light and speed limit support for monorails
+- New feature: Copy & paste for individual timed traffic lights
+- New feature: Rotate individual timed traffic lights
+- New feature: Lane customizations may come into effect instantaneously
+- Unified traffic light toggling feature with game code
+- Performance improvements
+- Reworked the way that traffic measurements are performed
+- Advanced Vehicle AI: Algorithm updated, performance improved - Possible routing decisions are now being precalculated
+- Path-finding cost multiplicator for vehicle restrictions is now configurable in TMPE_GlobalConfig.xml
+- UI: More compact, movable main menu UI
+- Added support for custom languages
+- Added Korean translation (thanks to @Toothless FLY [ROK]LSh.st for translating)
+- Updated translations: German, Polish, Russian, Portuguese, Traditional Chinese 
+- Major code refactorings
+- AI: Tuned path-finding parameters
+- New option: Main button position can be locked
+- New option: Main menu position can be locked
+- New option: Added language selection in options dialog
+- New option: Customization of lane arrows, lane connections and vehicle restrictions can now come into effect instantaneously 
+- Bugfix: Cars sometimes get stuck forever when the Advanced Parking AI is activated (thanks to @cmfcmf for reporting this issue)
+- Bugfix: Busses do not perform u-turns even if the transport line show u-turns (thanks to @dymanoid for reporting this issue)
+- Bugfix: Timed traffic lights do not work as expected on single-direction train tracks (thanks to @DaEgi01 for reporting this issue)
+- Bugfix: Vehicle restriction and speed limit signs overlay is displayed on the wrong side of inverted road segments
+- Bugfix: Influx statistics value is zero (thanks to @hjo for reporting this issue) 
+
 1.8.16, 03/20/2017
 - Lane connections can now also be removed by pressing the backspace key
 - Improved lane selection for busses if the option "Busses may ignore lane arrows" is activated

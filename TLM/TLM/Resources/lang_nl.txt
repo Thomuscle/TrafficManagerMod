@@ -158,3 +158,16 @@ Vehicle_behavior Vortuiggedrag
 Policies_&_Restrictions Beleidsregels & beperkingen
 At_junctions Bij splitsingen
 In_case_of_emergency In geval van nood
+Show_lane-wise_speed_limits Toon rijstrookspecifieke snelheidslimieten
+Language Taal
+Game_language Taal van spel
+requires_game_restart Vereist spelherstart
+Customizations_come_into_effect_instantaneously Aanpassingen zijn onmiddelijk van toepassing
+Options Instellingen
+Lock_main_menu_button_position Vergendel positie van hoofdmenuknop
+Lock_main_menu_position Vergrendel positie van hoofdmenu
+Recalculating_lane_routing Rijstrookroutering wordt herberekend
+Please_wait Even geduld graag
+Parking_restrictions Parkeerbeperkingen
+On_roads On roads
+Ban_private_cars_and_trucks_on_bus_lanes Ban private cars and trucks on bus lanes

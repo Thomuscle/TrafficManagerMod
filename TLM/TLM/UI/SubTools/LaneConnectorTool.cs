@@ -13,6 +13,7 @@ using TrafficManager.TrafficLight;
 using TrafficManager.Util;
 using UnityEngine;
 using TrafficManager.Manager;
+using CSUtil.Commons;
 
 namespace TrafficManager.UI.SubTools {
 	public class LaneConnectorTool : SubTool {
@@ -30,7 +31,6 @@ namespace TrafficManager.UI.SubTools {
 		}
 
 		private static readonly Color DefaultNodeMarkerColor = new Color(1f, 1f, 1f, 0.4f);
-		private Dictionary<ushort, IDisposable> nodeGeometryUnsubscribers;
 		private NodeLaneMarker selectedMarker = null;
 		private NodeLaneMarker hoveredMarker = null;
 		private Dictionary<ushort, List<NodeLaneMarker>> currentNodeMarkers;
@@ -56,7 +56,6 @@ namespace TrafficManager.UI.SubTools {
 
 		public LaneConnectorTool(TrafficManagerTool mainTool) : base(mainTool) {
 			//Log._Debug($"TppLaneConnectorTool: Constructor called");
-			nodeGeometryUnsubscribers = new Dictionary<ushort, IDisposable>();
 			currentNodeMarkers = new Dictionary<ushort, List<NodeLaneMarker>>();
 		}
 
@@ -78,58 +77,71 @@ namespace TrafficManager.UI.SubTools {
 			//Bounds bounds = new Bounds(Vector3.zero, Vector3.one);
 			Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-			foreach (KeyValuePair<ushort, List<NodeLaneMarker>> e in currentNodeMarkers) {
-				ushort nodeId = e.Key;
-				List<NodeLaneMarker> nodeMarkers = e.Value;
-				Vector3 nodePos = NetManager.instance.m_nodes.m_buffer[nodeId].m_position;
+			for (ushort nodeId = 1; nodeId < NetManager.MAX_NODE_COUNT; ++nodeId) {
+				if (!Constants.ServiceFactory.NetService.IsNodeValid(nodeId)) {
+					continue;
+				}
 
-				var diff = nodePos - camPos;
-				if (diff.magnitude > TrafficManagerTool.PriorityCloseLod)
+				ItemClass connectionClass = NetManager.instance.m_nodes.m_buffer[nodeId].Info.GetConnectionClass();
+				if (connectionClass == null ||
+					!(connectionClass.m_service == ItemClass.Service.Road || (connectionClass.m_service == ItemClass.Service.PublicTransport &&
+					(connectionClass.m_subService == ItemClass.SubService.PublicTransportTrain ||
+					connectionClass.m_subService == ItemClass.SubService.PublicTransportMetro)))) {
+					continue;
+				}
+
+				var diff = NetManager.instance.m_nodes.m_buffer[nodeId].m_position - camPos;
+				if (diff.magnitude > TrafficManagerTool.MaxOverlayDistance)
 					continue; // do not draw if too distant
+
+				List<NodeLaneMarker> nodeMarkers;
+				bool hasMarkers = currentNodeMarkers.TryGetValue(nodeId, out nodeMarkers);
 
 				if (!viewOnly && GetMarkerSelectionMode() == MarkerSelectionMode.None) {
 					MainTool.DrawNodeCircle(cameraInfo, nodeId, DefaultNodeMarkerColor, true);
 				}
 
-				foreach (NodeLaneMarker laneMarker in nodeMarkers) {
-					foreach (NodeLaneMarker targetLaneMarker in laneMarker.connectedMarkers) {
-						// render lane connection from laneMarker to targetLaneMarker
-						RenderLane(cameraInfo, laneMarker.position, targetLaneMarker.position, nodePos, laneMarker.color);
-					}
-
-					if (!viewOnly && nodeId == SelectedNodeId) {
-						//bounds.center = laneMarker.position;
-						bool markerIsHovered = IsLaneMarkerHovered(laneMarker, ref mouseRay);// bounds.IntersectRay(mouseRay);
-
-						// draw source marker in source selection mode,
-						// draw target marker (if segment turning angles are within bounds) and selected source marker in target selection mode
-						bool drawMarker = (GetMarkerSelectionMode() == MarkerSelectionMode.SelectSource && laneMarker.isSource) ||
-							(GetMarkerSelectionMode() == MarkerSelectionMode.SelectTarget && (
-							(!laneMarker.isSource &&
-							(laneMarker.vehicleType & selectedMarker.vehicleType) != VehicleInfo.VehicleType.None &&
-							CheckSegmentsTurningAngle(selectedMarker.segmentId, ref netManager.m_segments.m_buffer[selectedMarker.segmentId], selectedMarker.startNode, laneMarker.segmentId, ref netManager.m_segments.m_buffer[laneMarker.segmentId], laneMarker.startNode)
-							) || laneMarker == selectedMarker));
-						// highlight hovered marker and selected marker
-						bool highlightMarker = drawMarker && (laneMarker == selectedMarker || markerIsHovered);
-
-						if (drawMarker) {
-							if (highlightMarker) {
-								laneMarker.radius = 2f;
-							} else
-								laneMarker.radius = 1f;
-						} else {
-							markerIsHovered = false;
+				if (hasMarkers) {
+					foreach (NodeLaneMarker laneMarker in nodeMarkers) {
+						foreach (NodeLaneMarker targetLaneMarker in laneMarker.connectedMarkers) {
+							// render lane connection from laneMarker to targetLaneMarker
+							RenderLane(cameraInfo, laneMarker.position, targetLaneMarker.position, NetManager.instance.m_nodes.m_buffer[nodeId].m_position, laneMarker.color);
 						}
 
-						if (markerIsHovered) {
-							/*if (hoveredMarker != sourceLaneMarker)
-								Log._Debug($"Marker @ lane {sourceLaneMarker.laneId} hovered");*/
-							hoveredMarker = laneMarker;
-						}
+						if (!viewOnly && nodeId == SelectedNodeId) {
+							//bounds.center = laneMarker.position;
+							bool markerIsHovered = IsLaneMarkerHovered(laneMarker, ref mouseRay);// bounds.IntersectRay(mouseRay);
 
-						if (drawMarker) {
-							//DrawLaneMarker(laneMarker, cameraInfo);
-							RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, laneMarker.color, laneMarker.position, laneMarker.radius, laneMarker.position.y - 100f, laneMarker.position.y + 100f, false, true);
+							// draw source marker in source selection mode,
+							// draw target marker (if segment turning angles are within bounds) and selected source marker in target selection mode
+							bool drawMarker = (GetMarkerSelectionMode() == MarkerSelectionMode.SelectSource && laneMarker.isSource) ||
+								(GetMarkerSelectionMode() == MarkerSelectionMode.SelectTarget && (
+								(!laneMarker.isSource &&
+								(laneMarker.vehicleType & selectedMarker.vehicleType) != VehicleInfo.VehicleType.None &&
+								CheckSegmentsTurningAngle(selectedMarker.segmentId, ref netManager.m_segments.m_buffer[selectedMarker.segmentId], selectedMarker.startNode, laneMarker.segmentId, ref netManager.m_segments.m_buffer[laneMarker.segmentId], laneMarker.startNode)
+								) || laneMarker == selectedMarker));
+							// highlight hovered marker and selected marker
+							bool highlightMarker = drawMarker && (laneMarker == selectedMarker || markerIsHovered);
+
+							if (drawMarker) {
+								if (highlightMarker) {
+									laneMarker.radius = 2f;
+								} else
+									laneMarker.radius = 1f;
+							} else {
+								markerIsHovered = false;
+							}
+
+							if (markerIsHovered) {
+								/*if (hoveredMarker != sourceLaneMarker)
+									Log._Debug($"Marker @ lane {sourceLaneMarker.laneId} hovered");*/
+								hoveredMarker = laneMarker;
+							}
+
+							if (drawMarker) {
+								//DrawLaneMarker(laneMarker, cameraInfo);
+								RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, laneMarker.color, laneMarker.position, laneMarker.radius, laneMarker.position.y - 100f, laneMarker.position.y + 100f, false, true);
+							}
 						}
 					}
 				}
@@ -173,17 +185,8 @@ namespace TrafficManager.UI.SubTools {
 
 				if (deleteAll) {
 					// remove all connections at selected node
-
-					List<NodeLaneMarker> nodeMarkers = GetNodeMarkers(SelectedNodeId);
-					if (nodeMarkers != null) {
-						selectedMarker = null;
-						foreach (NodeLaneMarker sourceLaneMarker in nodeMarkers) {
-							foreach (NodeLaneMarker targetLaneMarker in sourceLaneMarker.connectedMarkers) {
-								LaneConnectionManager.Instance.RemoveLaneConnection(sourceLaneMarker.laneId, targetLaneMarker.laneId, sourceLaneMarker.startNode);
-							}
-						}
-					}
-					RefreshCurrentNodeMarkers();
+					LaneConnectionManager.Instance.RemoveLaneConnectionsFromNode(SelectedNodeId);
+					RefreshCurrentNodeMarkers(SelectedNodeId);
 				}
 
 				if (stayInLane) {
@@ -228,7 +231,7 @@ namespace TrafficManager.UI.SubTools {
 								}
 							}
 						}
-						RefreshCurrentNodeMarkers();
+						RefreshCurrentNodeMarkers(SelectedNodeId);
 					}
 				}
 			}
@@ -374,12 +377,21 @@ namespace TrafficManager.UI.SubTools {
 			RefreshCurrentNodeMarkers();
 		}
 
-		private void RefreshCurrentNodeMarkers() {
-			currentNodeMarkers.Clear();
+		private void RefreshCurrentNodeMarkers(ushort forceNodeId=0) {
+			if (forceNodeId == 0) {
+				currentNodeMarkers.Clear();
+			} else {
+				currentNodeMarkers.Remove(forceNodeId);
+			}
 
-			for (uint nodeId = 1; nodeId < NetManager.MAX_NODE_COUNT; ++nodeId) {
-				if ((Singleton<NetManager>.instance.m_nodes.m_buffer[nodeId].m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
+			for (uint nodeId = (forceNodeId == 0 ? 1u : forceNodeId); nodeId <= (forceNodeId == 0 ? NetManager.MAX_NODE_COUNT-1 : forceNodeId); ++nodeId) {
+				if (!Constants.ServiceFactory.NetService.IsNodeValid((ushort)nodeId)) {
 					continue;
+				}
+
+				if (! LaneConnectionManager.Instance.HasNodeConnections((ushort)nodeId)) {
+					continue;
+				}
 
 				List<NodeLaneMarker> nodeMarkers = GetNodeMarkers((ushort)nodeId);
 				if (nodeMarkers == null)
@@ -397,11 +409,16 @@ namespace TrafficManager.UI.SubTools {
 		}
 
 		public override void Cleanup() {
-			RefreshCurrentNodeMarkers();
+			
 		}
 
 		public override void Initialize() {
 			Cleanup();
+			if (Options.connectedLanesOverlay) {
+				RefreshCurrentNodeMarkers();
+			} else {
+				currentNodeMarkers.Clear();
+			}
 		}
 
 		private List<NodeLaneMarker> GetNodeMarkers(ushort nodeId) {
@@ -425,8 +442,8 @@ namespace TrafficManager.UI.SubTools {
 				uint laneId = NetManager.instance.m_segments.m_buffer[segmentId].m_lanes;
 				for (byte laneIndex = 0; laneIndex < lanes.Length && laneId != 0; laneIndex++) {
 					NetInfo.Lane laneInfo = lanes[laneIndex];
-					if ((laneInfo.m_laneType & (NetInfo.LaneType.TransportVehicle | NetInfo.LaneType.Vehicle)) != NetInfo.LaneType.None &&
-						(laneInfo.m_vehicleType & (VehicleInfo.VehicleType.Car | VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Tram | VehicleInfo.VehicleType.Metro)) != VehicleInfo.VehicleType.None) { // TODO refactor vehicle mask
+					if ((laneInfo.m_laneType & LaneConnectionManager.LANE_TYPES) != NetInfo.LaneType.None &&
+						(laneInfo.m_vehicleType & LaneConnectionManager.VEHICLE_TYPES) != VehicleInfo.VehicleType.None) {
 
 						Vector3? pos = null;
 						bool isSource = false;

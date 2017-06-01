@@ -21,18 +21,24 @@ namespace TrafficManager.UI.SubTools {
 				return;
 			if (HoveredNodeId == 0)
 				return;
+			
+			Constants.ServiceFactory.NetService.ProcessNode(HoveredNodeId, delegate (ushort nId, ref NetNode node) {
+				TrafficLightManager.Instance.ToggleTrafficLight(HoveredNodeId, ref node);
+				return true;
+			});
+		}
 
-			if ((Singleton<NetManager>.instance.m_nodes.m_buffer[HoveredNodeId].m_flags & NetNode.Flags.Junction) == NetNode.Flags.None)
-				return;
-
-			TrafficLightSimulation sim = TrafficLightSimulationManager.Instance.GetNodeSimulation(HoveredNodeId);
-			if (sim != null && sim.IsTimedLight()) {
-				MainTool.ShowTooltip(Translation.GetString("NODE_IS_TIMED_LIGHT"), Singleton<NetManager>.instance.m_nodes.m_buffer[HoveredNodeId].m_position);
+		public void ToggleTrafficLight(ushort nodeId, ref NetNode node, bool showMessageOnError=true) {
+			TrafficLightManager.UnableReason reason;
+			if (!TrafficLightManager.Instance.IsTrafficLightToggleable(nodeId, ref node, out reason)) {
+				if (showMessageOnError && reason == TrafficLightManager.UnableReason.HasTimedLight) {
+					MainTool.ShowTooltip(Translation.GetString("NODE_IS_TIMED_LIGHT"));
+				}
 				return;
 			}
 
-			TrafficPriorityManager.Instance.RemovePrioritySegments(HoveredNodeId);
-			TrafficLightManager.Instance.ToggleTrafficLight(HoveredNodeId);
+			TrafficPriorityManager.Instance.RemovePrioritySignsFromNode(nodeId);
+			TrafficLightManager.Instance.ToggleTrafficLight(nodeId, ref node);
 		}
 
 		public override void OnToolGUI(Event e) {
@@ -49,20 +55,6 @@ namespace TrafficManager.UI.SubTools {
 			if (!Flags.mayHaveTrafficLight(HoveredNodeId)) return;
 
 			MainTool.DrawNodeCircle(cameraInfo, HoveredNodeId, Input.GetMouseButton(0), false);
-			/*
-			var segment = Singleton<NetManager>.instance.m_segments.m_buffer[Singleton<NetManager>.instance.m_nodes.m_buffer[HoveredNodeId].m_segment0];
-
-			Bezier3 bezier;
-			bezier.a = Singleton<NetManager>.instance.m_nodes.m_buffer[HoveredNodeId].m_position;
-			bezier.d = Singleton<NetManager>.instance.m_nodes.m_buffer[HoveredNodeId].m_position;
-
-			var color = MainTool.GetToolColor(Input.GetMouseButton(0), false);
-
-			NetSegment.CalculateMiddlePoints(bezier.a, segment.m_startDirection, bezier.d,
-				segment.m_endDirection,
-				false, false, out bezier.b, out bezier.c);
-
-			MainTool.DrawOverlayBezier(cameraInfo, bezier, color);*/
 		}
 	}
 }

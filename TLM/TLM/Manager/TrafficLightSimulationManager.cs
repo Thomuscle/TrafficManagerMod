@@ -8,16 +8,13 @@ using TrafficManager.Util;
 using TrafficManager.TrafficLight;
 using TrafficManager.Traffic;
 using System.Linq;
+using CSUtil.Commons;
 
 namespace TrafficManager.Manager {
 	public class TrafficLightSimulationManager : AbstractNodeGeometryObservingManager, ICustomDataManager<List<Configuration.TimedTrafficLights>> {
-		public static TrafficLightSimulationManager Instance { get; private set; } = null;
+		public static readonly TrafficLightSimulationManager Instance = new TrafficLightSimulationManager();
 		public const int SIM_MOD = 64;
-
-		static TrafficLightSimulationManager() {
-			Instance = new TrafficLightSimulationManager();
-		}
-
+	
 		/// <summary>
 		/// For each node id: traffic light simulation assigned to the node
 		/// </summary>
@@ -26,6 +23,17 @@ namespace TrafficManager.Manager {
 
 		private TrafficLightSimulationManager() {
 			
+		}
+
+		protected override void InternalPrintDebugInfo() {
+			base.InternalPrintDebugInfo();
+			Log._Debug($"Traffic light simulations:");
+			for (int i = 0; i < TrafficLightSimulations.Length; ++i) {
+				if (TrafficLightSimulations[i] == null) {
+					continue;
+				}
+				Log._Debug($"Simulation {i}: {TrafficLightSimulations[i]}");
+			}
 		}
 
 		public void SimulationStep() {
@@ -52,12 +60,13 @@ namespace TrafficManager.Manager {
 		/// </summary>
 		/// <param name="nodeId"></param>
 		public TrafficLightSimulation AddNodeToSimulation(ushort nodeId) {
-			if (HasSimulation(nodeId)) {
-				return TrafficLightSimulations[nodeId];
+			TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+			if (sim != null) {
+				return sim;
 			}
-			TrafficLightSimulations[nodeId] = new TrafficLightSimulation(nodeId);
+			TrafficLightSimulations[nodeId] = sim = new TrafficLightSimulation(nodeId);
 			SubscribeToNodeGeometry(nodeId);
-			return TrafficLightSimulations[nodeId];
+			return sim;
 		}
 
 		/// <summary>
@@ -66,10 +75,10 @@ namespace TrafficManager.Manager {
 		/// <param name="nodeId"></param>
 		/// <param name="destroyGroup"></param>
 		public void RemoveNodeFromSimulation(ushort nodeId, bool destroyGroup, bool removeTrafficLight) {
-			if (!HasSimulation(nodeId))
-				return;
-
 			TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+			if (sim == null) {
+				return;
+			}
 			TrafficLightManager tlm = TrafficLightManager.Instance;
 
 			if (sim.TimedLight != null) {
@@ -87,8 +96,12 @@ namespace TrafficManager.Manager {
 						otherNodeSim.DestroyManualTrafficLight();
 						otherNodeSim.NodeGeoUnsubscriber?.Dispose();
 						RemoveNodeFromSimulation(timedNodeId);
-						if (removeTrafficLight)
-							tlm.RemoveTrafficLight(timedNodeId);
+						if (removeTrafficLight) {
+							Constants.ServiceFactory.NetService.ProcessNode(timedNodeId, delegate (ushort nId, ref NetNode node) {
+								tlm.RemoveTrafficLight(timedNodeId, ref node);
+								return true;
+							});
+						}
 					} else {
 						otherNodeSim.TimedLight.RemoveNodeFromGroup(nodeId);
 					}
@@ -100,12 +113,32 @@ namespace TrafficManager.Manager {
 			sim.DestroyManualTrafficLight();
 			sim.NodeGeoUnsubscriber?.Dispose();
 			RemoveNodeFromSimulation(nodeId);
-			if (removeTrafficLight)
-				tlm.RemoveTrafficLight(nodeId);
+			if (removeTrafficLight) {
+				Constants.ServiceFactory.NetService.ProcessNode(nodeId, delegate (ushort nId, ref NetNode node) {
+					tlm.RemoveTrafficLight(nodeId, ref node);
+					return true;
+				});
+			}
 		}
 
 		public bool HasSimulation(ushort nodeId) {
-			return GetNodeSimulation(nodeId) != null;
+			return TrafficLightSimulations[nodeId] != null;
+		}
+
+		public bool HasTimedSimulation(ushort nodeId) {
+			TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+			if (sim == null) {
+				return false;
+			}
+			return sim.IsTimedLight();
+		}
+
+		public bool HasActiveTimedSimulation(ushort nodeId) {
+			TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+			if (sim == null) {
+				return false;
+			}
+			return sim.IsTimedLightActive();
 		}
 
 		private void RemoveNodeFromSimulation(ushort nodeId) {
@@ -130,7 +163,7 @@ namespace TrafficManager.Manager {
 		}
 
 		protected override void HandleValidNode(NodeGeometry geometry) {
-			TrafficPriorityManager.Instance.AddPriorityNode(geometry.NodeId, true);
+			
 		}
 
 		public bool LoadData(List<Configuration.TimedTrafficLights> data) {
@@ -160,7 +193,7 @@ namespace TrafficManager.Manager {
 					int foundMasterNodes = 0;
 					for (int i = 0; i < currentNodeGroup.Count;) {
 						ushort nodeId = currentNodeGroup[i];
-						if (!NetUtil.IsNodeValid(currentNodeGroup[i])) {
+						if (!Services.NetService.IsNodeValid(currentNodeGroup[i])) {
 							currentNodeGroup.RemoveAt(i);
 							continue;
 						} else if (nodeGroupByMasterNodeId.ContainsKey(nodeId)) {
@@ -216,12 +249,13 @@ namespace TrafficManager.Manager {
 						TimedTrafficLightsStep step = timedNode.AddStep(cnfTimedStep.minTime, cnfTimedStep.maxTime, cnfTimedStep.waitFlowBalance);
 
 						foreach (KeyValuePair<ushort, Configuration.CustomSegmentLights> e in cnfTimedStep.segmentLights) {
-							if (!NetUtil.IsSegmentValid(e.Key))
+							if (!Services.NetService.IsSegmentValid(e.Key))
 								continue;
+							e.Value.nodeId = cnfTimedLights.nodeId;
 
 							Log._Debug($"Loading timed step {j}, segment {e.Key} at node {cnfTimedLights.nodeId}");
 							CustomSegmentLights lights = null;
-							if (!step.segmentLights.TryGetValue(e.Key, out lights)) {
+							if (!step.CustomSegmentLights.TryGetValue(e.Key, out lights)) {
 								Log._Debug($"No segment lights found at timed step {j} for segment {e.Key}, node {cnfTimedLights.nodeId}");
 								continue;
 							}
@@ -286,7 +320,7 @@ namespace TrafficManager.Manager {
 					Log._Debug($"Going to save timed light at node {nodeId}.");
 
 					var timedNode = sim.TimedLight;
-					timedNode.handleNewSegments();
+					timedNode.OnGeometryUpdate();
 
 					Configuration.TimedTrafficLights cnfTimedLights = new Configuration.TimedTrafficLights();
 					ret.Add(cnfTimedLights);
@@ -306,18 +340,25 @@ namespace TrafficManager.Manager {
 						cnfTimedStep.maxTime = timedStep.maxTime;
 						cnfTimedStep.waitFlowBalance = timedStep.waitFlowBalance;
 						cnfTimedStep.segmentLights = new Dictionary<ushort, Configuration.CustomSegmentLights>();
-						foreach (KeyValuePair<ushort, CustomSegmentLights> e in timedStep.segmentLights) {
+						foreach (KeyValuePair<ushort, CustomSegmentLights> e in timedStep.CustomSegmentLights) {
 							Log._Debug($"Saving timed light step {j}, segment {e.Key} at node {nodeId}.");
 
 							CustomSegmentLights segLights = e.Value;
 							Configuration.CustomSegmentLights cnfSegLights = new Configuration.CustomSegmentLights();
-							cnfTimedStep.segmentLights.Add(e.Key, cnfSegLights);
 
-							cnfSegLights.nodeId = segLights.NodeId;
-							cnfSegLights.segmentId = segLights.SegmentId;
+							ushort lightsNodeId = segLights.NodeId;
+							if (lightsNodeId == 0 || lightsNodeId != timedNode.NodeId) {
+								Log.Warning($"Inconsistency detected: Timed traffic light @ node {timedNode.NodeId} contains custom traffic lights for the invalid segment ({segLights.SegmentId}) at step {j}: nId={lightsNodeId}");
+								continue;
+							}
+
+							cnfSegLights.nodeId = lightsNodeId; // TODO not needed
+							cnfSegLights.segmentId = segLights.SegmentId; // TODO not needed
 							cnfSegLights.customLights = new Dictionary<ExtVehicleType, Configuration.CustomSegmentLight>();
 							cnfSegLights.pedestrianLightState = segLights.PedestrianLightState;
 							cnfSegLights.manualPedestrianMode = segLights.ManualPedestrianMode;
+
+							cnfTimedStep.segmentLights.Add(e.Key, cnfSegLights);
 
 							Log._Debug($"Saving pedestrian light @ seg. {e.Key}, step {j}: {cnfSegLights.pedestrianLightState} {cnfSegLights.manualPedestrianMode}");
 
@@ -328,8 +369,8 @@ namespace TrafficManager.Manager {
 								Configuration.CustomSegmentLight cnfSegLight = new Configuration.CustomSegmentLight();
 								cnfSegLights.customLights.Add(e2.Key, cnfSegLight);
 
-								cnfSegLight.nodeId = segLight.NodeId;
-								cnfSegLight.segmentId = segLight.SegmentId;
+								cnfSegLight.nodeId = lightsNodeId; // TODO not needed
+								cnfSegLight.segmentId = segLights.SegmentId; // TODO not needed
 								cnfSegLight.currentMode = (int)segLight.CurrentMode;
 								cnfSegLight.leftLight = segLight.LightLeft;
 								cnfSegLight.mainLight = segLight.LightMain;

@@ -11,14 +11,18 @@ using TrafficManager.UI;
 using ColossalFramework.Plugins;
 using ColossalFramework.Globalization;
 using TrafficManager.Manager;
+using CSUtil.Commons;
+using System.Reflection;
 
 namespace TrafficManager.State {
 
 	public class Options : MonoBehaviour {
-		public static readonly int DYNAMIC_RECALC_MIN_PROCESSOR_COUNT = 8;
-
+		private static UIDropDown languageDropdown = null;
 		private static UIDropDown simAccuracyDropdown = null;
 		//private static UIDropDown laneChangingRandomizationDropdown = null;
+		private static UICheckBox instantEffectsToggle = null;
+		private static UICheckBox lockButtonToggle = null;
+		private static UICheckBox lockMenuToggle = null;
 		private static UICheckBox realisticSpeedsToggle = null;
 		private static UIDropDown recklessDriversDropdown = null;
 		private static UICheckBox relaxedBussesToggle = null;
@@ -28,6 +32,7 @@ namespace TrafficManager.State {
 		private static UICheckBox timedLightsOverlayToggle = null;
 		private static UICheckBox speedLimitsOverlayToggle = null;
 		private static UICheckBox vehicleRestrictionsOverlayToggle = null;
+		private static UICheckBox parkingRestrictionsOverlayToggle = null;
 		private static UICheckBox junctionRestrictionsOverlayToggle = null;
 		private static UICheckBox connectedLanesOverlayToggle = null;
 		private static UICheckBox nodesOverlayToggle = null;
@@ -39,22 +44,22 @@ namespace TrafficManager.State {
 		private static UICheckBox allowEnterBlockedJunctionsToggle = null;
 		private static UICheckBox allowUTurnsToggle = null;
 		private static UICheckBox allowLaneChangesWhileGoingStraightToggle = null;
+		private static UICheckBox banRegularTrafficOnBusLanesToggle = null;
 		private static UICheckBox enableDespawningToggle = null;
 
 		private static UICheckBox strongerRoadConditionEffectsToggle = null;
 		private static UICheckBox prohibitPocketCarsToggle = null;
 		private static UICheckBox advancedAIToggle = null;
-		private static UICheckBox dynamicPathRecalculationToggle = null;
 		private static UICheckBox highwayRulesToggle = null;
 		private static UICheckBox preferOuterLaneToggle = null;
 		private static UICheckBox showLanesToggle = null;
-		private static UIButton forgetTrafficLightsBtn = null;
 		private static UIButton resetStuckEntitiesBtn = null;
 
 		private static UICheckBox enablePrioritySignsToggle = null;
 		private static UICheckBox enableTimedLightsToggle = null;
 		private static UICheckBox enableCustomSpeedLimitsToggle = null;
 		private static UICheckBox enableVehicleRestrictionsToggle = null;
+		private static UICheckBox enableParkingRestrictionsToggle = null;
 		private static UICheckBox enableJunctionRestrictionsToggle = null;
 		private static UICheckBox enableLaneConnectorToggle = null;
 
@@ -68,6 +73,7 @@ namespace TrafficManager.State {
 		private static UIButton reloadGlobalConfBtn = null;
 		private static UIButton resetGlobalConfBtn = null;
 
+		public static bool instantEffects = true;
 		public static int simAccuracy = 0;
 		//public static int laneChangingRandomization = 2;
 		public static bool realisticSpeeds = true;
@@ -79,6 +85,7 @@ namespace TrafficManager.State {
 		public static bool timedLightsOverlay = false;
 		public static bool speedLimitsOverlay = false;
 		public static bool vehicleRestrictionsOverlay = false;
+		public static bool parkingRestrictionsOverlay = false;
 		public static bool junctionRestrictionsOverlay = false;
 		public static bool connectedLanesOverlay = false;
 #if DEBUG
@@ -95,11 +102,11 @@ namespace TrafficManager.State {
 		public static bool allowEnterBlockedJunctions = false;
 		public static bool allowUTurns = false;
 		public static bool allowLaneChangesWhileGoingStraight = false;
+		public static bool banRegularTrafficOnBusLanes = false;
 		public static bool advancedAI = false;
-		private static bool dynamicPathRecalculation = false;
 		public static bool highwayRules = false;
 #if DEBUG
-		public static bool showLanes = false;
+		public static bool showLanes = true;
 #else
 		public static bool showLanes = false;
 #endif
@@ -113,6 +120,7 @@ namespace TrafficManager.State {
 		public static bool timedLightsEnabled = true;
 		public static bool customSpeedLimitsEnabled = true;
 		public static bool vehicleRestrictionsEnabled = true;
+		public static bool parkingRestrictionsEnabled = true;
 		public static bool junctionRestrictionsEnabled = true;
 		public static bool laneConnectorEnabled = true;
 
@@ -158,13 +166,38 @@ namespace TrafficManager.State {
 
 			UIHelper panelHelper = new UIHelper(currentPanel);
 
-			simAccuracyDropdown = panelHelper.AddDropdown(Translation.GetString("Simulation_accuracy") + ":", new string[] { Translation.GetString("Very_high"), Translation.GetString("High"), Translation.GetString("Medium"), Translation.GetString("Low"), Translation.GetString("Very_Low") }, simAccuracy, onSimAccuracyChanged) as UIDropDown;
+			var generalGroup = panelHelper.AddGroup(Translation.GetString("General"));
+
+			string[] languageLabels = new string[Translation.AVAILABLE_LANGUAGE_CODES.Count + 1];
+			languageLabels[0] = Translation.GetString("Game_language");
+			for (int i = 0; i < Translation.AVAILABLE_LANGUAGE_CODES.Count; ++i) {
+				languageLabels[i + 1] = Translation.LANGUAGE_LABELS[Translation.AVAILABLE_LANGUAGE_CODES[i]];
+			}
+			int languageIndex = 0;
+			string curLangCode = GlobalConfig.Instance.LanguageCode;
+			if (curLangCode != null) {
+				languageIndex = Translation.AVAILABLE_LANGUAGE_CODES.IndexOf(curLangCode);
+				if (languageIndex < 0) {
+					languageIndex = 0;
+				} else {
+					++languageIndex;
+				}
+			}
+
+			languageDropdown = generalGroup.AddDropdown(Translation.GetString("Language") + ":", languageLabels, languageIndex, onLanguageChanged) as UIDropDown;
+			lockButtonToggle = generalGroup.AddCheckbox(Translation.GetString("Lock_main_menu_button_position"), GlobalConfig.Instance.MainMenuButtonPosLocked, onLockButtonChanged) as UICheckBox;
+			lockMenuToggle = generalGroup.AddCheckbox(Translation.GetString("Lock_main_menu_position"), GlobalConfig.Instance.MainMenuPosLocked, onLockMenuChanged) as UICheckBox;
+
+			var simGroup = panelHelper.AddGroup(Translation.GetString("Simulation"));
+			simAccuracyDropdown = simGroup.AddDropdown(Translation.GetString("Simulation_accuracy") + ":", new string[] { Translation.GetString("Very_high"), Translation.GetString("High"), Translation.GetString("Medium"), Translation.GetString("Low"), Translation.GetString("Very_Low") }, simAccuracy, onSimAccuracyChanged) as UIDropDown;
+			instantEffectsToggle = simGroup.AddCheckbox(Translation.GetString("Customizations_come_into_effect_instantaneously"), instantEffects, onInstantEffectsChanged) as UICheckBox;
 
 			var featureGroup = panelHelper.AddGroup(Translation.GetString("Activated_features"));
 			enablePrioritySignsToggle = featureGroup.AddCheckbox(Translation.GetString("Priority_signs"), prioritySignsEnabled, onPrioritySignsEnabledChanged) as UICheckBox;
 			enableTimedLightsToggle = featureGroup.AddCheckbox(Translation.GetString("Timed_traffic_lights"), timedLightsEnabled, onTimedLightsEnabledChanged) as UICheckBox;
 			enableCustomSpeedLimitsToggle = featureGroup.AddCheckbox(Translation.GetString("Speed_limits"), customSpeedLimitsEnabled, onCustomSpeedLimitsEnabledChanged) as UICheckBox;
 			enableVehicleRestrictionsToggle = featureGroup.AddCheckbox(Translation.GetString("Vehicle_restrictions"), vehicleRestrictionsEnabled, onVehicleRestrictionsEnabledChanged) as UICheckBox;
+			enableParkingRestrictionsToggle = featureGroup.AddCheckbox(Translation.GetString("Parking_restrictions") + " (BETA feature)", parkingRestrictionsEnabled, onParkingRestrictionsEnabledChanged) as UICheckBox;
 			enableJunctionRestrictionsToggle = featureGroup.AddCheckbox(Translation.GetString("Junction_restrictions"), junctionRestrictionsEnabled, onJunctionRestrictionsEnabledChanged) as UICheckBox;
 			enableLaneConnectorToggle = featureGroup.AddCheckbox(Translation.GetString("Lane_connector"), laneConnectorEnabled, onLaneConnectorEnabledChanged) as UICheckBox;
 
@@ -192,10 +225,6 @@ namespace TrafficManager.State {
 
 			var vehAiGroup = panelHelper.AddGroup(Translation.GetString("Advanced_Vehicle_AI"));
 			advancedAIToggle = vehAiGroup.AddCheckbox(Translation.GetString("Enable_Advanced_Vehicle_AI"), advancedAI, onAdvancedAIChanged) as UICheckBox;
-#if DEBUG
-			//if (SystemInfo.processorCount >= DYNAMIC_RECALC_MIN_PROCESSOR_COUNT)
-			//dynamicPathRecalculationToggle = vehAiGroup.AddCheckbox(Translation.GetString("Enable_dynamic_path_calculation"), dynamicPathRecalculation, onDynamicPathRecalculationChanged) as UICheckBox;
-#endif
 			highwayRulesToggle = vehAiGroup.AddCheckbox(Translation.GetString("Enable_highway_specific_lane_merging/splitting_rules"), highwayRules, onHighwayRulesChanged) as UICheckBox;
 			preferOuterLaneToggle = vehAiGroup.AddCheckbox(Translation.GetString("Heavy_trucks_prefer_outer_lanes_on_highways"), preferOuterLane, onPreferOuterLaneChanged) as UICheckBox;
 
@@ -226,6 +255,9 @@ namespace TrafficManager.State {
 			allowUTurnsToggle = atJunctionsGroup.AddCheckbox(Translation.GetString("Vehicles_may_do_u-turns_at_junctions"), allowUTurns, onAllowUTurnsChanged) as UICheckBox;
 			allowLaneChangesWhileGoingStraightToggle = atJunctionsGroup.AddCheckbox(Translation.GetString("Vehicles_going_straight_may_change_lanes_at_junctions"), allowLaneChangesWhileGoingStraight, onAllowLaneChangesWhileGoingStraightChanged) as UICheckBox;
 
+			var onRoadsGroup = panelHelper.AddGroup(Translation.GetString("On_roads"));
+			banRegularTrafficOnBusLanesToggle = onRoadsGroup.AddCheckbox(Translation.GetString("Ban_private_cars_and_trucks_on_bus_lanes"), banRegularTrafficOnBusLanes, onBanRegularTrafficOnBusLanesChanged) as UICheckBox;
+
 			if (SteamHelper.IsDLCOwned(SteamHelper.DLC.NaturalDisastersDLC)) {
 				var inCaseOfEmergencyGroup = panelHelper.AddGroup(Translation.GetString("In_case_of_emergency"));
 				evacBussesMayIgnoreRulesToggle = inCaseOfEmergencyGroup.AddCheckbox(Translation.GetString("Evacuation_busses_may_ignore_traffic_rules"), evacBussesMayIgnoreRules, onEvacBussesMayIgnoreRulesChanged) as UICheckBox;
@@ -250,6 +282,7 @@ namespace TrafficManager.State {
 			timedLightsOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Timed_traffic_lights"), timedLightsOverlay, onTimedLightsOverlayChanged) as UICheckBox;
 			speedLimitsOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Speed_limits"), speedLimitsOverlay, onSpeedLimitsOverlayChanged) as UICheckBox;
 			vehicleRestrictionsOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Vehicle_restrictions"), vehicleRestrictionsOverlay, onVehicleRestrictionsOverlayChanged) as UICheckBox;
+			parkingRestrictionsOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Parking_restrictions"), parkingRestrictionsOverlay, onParkingRestrictionsOverlayChanged) as UICheckBox;
 			junctionRestrictionsOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Junction_restrictions"), junctionRestrictionsOverlay, onJunctionRestrictionsOverlayChanged) as UICheckBox;
 			connectedLanesOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Connected_lanes"), connectedLanesOverlay, onConnectedLanesOverlayChanged) as UICheckBox;
 			nodesOverlayToggle = panelHelper.AddCheckbox(Translation.GetString("Nodes_and_segments"), nodesOverlay, onNodesOverlayChanged) as UICheckBox;
@@ -275,7 +308,6 @@ namespace TrafficManager.State {
 
 			panelHelper = new UIHelper(currentPanel);
 
-			forgetTrafficLightsBtn = panelHelper.AddButton(Translation.GetString("Forget_toggled_traffic_lights"), onClickForgetToggledLights) as UIButton;
 			resetStuckEntitiesBtn = panelHelper.AddButton(Translation.GetString("Reset_stuck_cims_and_vehicles"), onClickResetStuckEntities) as UIButton;
 #if DEBUG
 			resetSpeedLimitsBtn = panelHelper.AddButton(Translation.GetString("Reset_custom_speed_limits"), onClickResetSpeedLimits) as UIButton;
@@ -335,7 +367,7 @@ namespace TrafficManager.State {
 		}
 
 		private static bool checkGameLoaded() {
-			if (!SerializableDataExtension.StateLoading && !LoadingExtension.IsGameLoaded()) {
+			if (!SerializableDataExtension.StateLoading && !LoadingExtension.IsGameLoaded) {
 				UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel").SetMessage("Nope!", Translation.GetString("Settings_are_defined_for_each_savegame_separately") + ". https://www.viathinksoft.de/tmpe/#options", false);
 				return false;
 			}
@@ -348,6 +380,8 @@ namespace TrafficManager.State {
 
 			Log._Debug($"prioritySignsOverlay changed to {newPrioritySignsOverlay}");
 			prioritySignsOverlay = newPrioritySignsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onTimedLightsOverlayChanged(bool newTimedLightsOverlay) {
@@ -356,6 +390,8 @@ namespace TrafficManager.State {
 
 			Log._Debug($"timedLightsOverlay changed to {newTimedLightsOverlay}");
 			timedLightsOverlay = newTimedLightsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onSpeedLimitsOverlayChanged(bool newSpeedLimitsOverlay) {
@@ -364,6 +400,8 @@ namespace TrafficManager.State {
 
 			Log._Debug($"speedLimitsOverlay changed to {newSpeedLimitsOverlay}");
 			speedLimitsOverlay = newSpeedLimitsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onVehicleRestrictionsOverlayChanged(bool newVehicleRestrictionsOverlay) {
@@ -372,6 +410,18 @@ namespace TrafficManager.State {
 
 			Log._Debug($"vehicleRestrictionsOverlay changed to {newVehicleRestrictionsOverlay}");
 			vehicleRestrictionsOverlay = newVehicleRestrictionsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
+		}
+
+		private static void onParkingRestrictionsOverlayChanged(bool newParkingRestrictionsOverlay) {
+			if (!checkGameLoaded())
+				return;
+
+			Log._Debug($"parkingRestrictionsOverlay changed to {newParkingRestrictionsOverlay}");
+			parkingRestrictionsOverlay = newParkingRestrictionsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onJunctionRestrictionsOverlayChanged(bool newValue) {
@@ -380,6 +430,8 @@ namespace TrafficManager.State {
 
 			Log._Debug($"junctionRestrictionsOverlay changed to {newValue}");
 			junctionRestrictionsOverlay = newValue;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onConnectedLanesOverlayChanged(bool newValue) {
@@ -388,6 +440,55 @@ namespace TrafficManager.State {
 
 			Log._Debug($"connectedLanesOverlay changed to {newValue}");
 			connectedLanesOverlay = newValue;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
+		}
+
+		private static void onLanguageChanged(int newLanguageIndex) {
+			bool localeChanged = false;
+
+			if (newLanguageIndex <= 0) {
+				GlobalConfig.Instance.LanguageCode = null;
+				GlobalConfig.WriteConfig();
+				MenuRebuildRequired = true;
+				localeChanged = true;
+			} else if (newLanguageIndex - 1 < Translation.AVAILABLE_LANGUAGE_CODES.Count) {
+				GlobalConfig.Instance.LanguageCode = Translation.AVAILABLE_LANGUAGE_CODES[newLanguageIndex - 1];
+				GlobalConfig.WriteConfig();
+				MenuRebuildRequired = true;
+				localeChanged = true;
+			} else {
+				Log.Warning($"Options.onLanguageChanged: Invalid language index: {newLanguageIndex}");
+			}
+
+			if (localeChanged) {
+				MethodInfo onChangedHandler = typeof(OptionsMainPanel).GetMethod("OnLocaleChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+				if (onChangedHandler != null) {
+					onChangedHandler.Invoke(UIView.library.Get<OptionsMainPanel>("OptionsPanel"), new object[0] { });
+				}
+			}
+		}
+
+		private static void onLockButtonChanged(bool newValue) {
+			Log._Debug($"Button lock changed to {newValue}");
+			LoadingExtension.BaseUI.MainMenuButton.SetPosLock(newValue);
+			GlobalConfig.Instance.MainMenuButtonPosLocked = newValue;
+			GlobalConfig.WriteConfig();
+		}
+
+		private static void onLockMenuChanged(bool newValue) {
+			Log._Debug($"Menu lock changed to {newValue}");
+			LoadingExtension.BaseUI.MainMenu.SetPosLock(newValue);
+			GlobalConfig.Instance.MainMenuPosLocked = newValue;
+			GlobalConfig.WriteConfig();
+		}
+
+		private static void onInstantEffectsChanged(bool newValue) {
+			if (!checkGameLoaded())
+				return;
+
+			Log._Debug($"Instant effects changed to {newValue}");
+			instantEffects = newValue;
 		}
 
 		private static void onSimAccuracyChanged(int newAccuracy) {
@@ -442,10 +543,16 @@ namespace TrafficManager.State {
 			if (!checkGameLoaded())
 				return;
 
+			bool changed = newHighwayRules != highwayRules;
+			if (!changed) {
+				return;
+			}
+
 			Log._Debug($"Highway rules changed to {newHighwayRules}");
 			highwayRules = newHighwayRules;
 			Flags.clearHighwayLaneArrows();
 			Flags.applyAllFlags();
+			RoutingManager.Instance.RequestFullRecalculation(true);
 			if (newHighwayRules)
 				setAdvancedAI(true);
 		}
@@ -501,6 +608,16 @@ namespace TrafficManager.State {
 				setVehicleRestrictionsOverlay(false);
 		}
 
+		private static void onParkingRestrictionsEnabledChanged(bool val) {
+			if (!checkGameLoaded())
+				return;
+
+			MenuRebuildRequired = true;
+			parkingRestrictionsEnabled = val;
+			if (!val)
+				setParkingRestrictionsOverlay(false);
+		}
+
 		private static void onJunctionRestrictionsEnabledChanged(bool val) {
 			if (!checkGameLoaded())
 				return;
@@ -515,20 +632,16 @@ namespace TrafficManager.State {
 			if (!checkGameLoaded())
 				return;
 
+			bool changed = val != laneConnectorEnabled;
+			if (!changed) {
+				return;
+			}
+
 			MenuRebuildRequired = true;
 			laneConnectorEnabled = val;
+			RoutingManager.Instance.RequestFullRecalculation(true);
 			if (!val)
 				setConnectedLanesOverlay(false);
-		}
-
-		private static void onDynamicPathRecalculationChanged(bool value) {
-			if (!checkGameLoaded())
-				return;
-
-			Log._Debug($"dynamicPathRecalculation changed to {value}");
-			dynamicPathRecalculation = value;
-			if (value)
-				setAdvancedAI(true);
 		}
 
 		private static void onEvacBussesMayIgnoreRulesChanged(bool value) {
@@ -561,6 +674,16 @@ namespace TrafficManager.State {
 
 			Log._Debug($"allowLaneChangesWhileGoingStraight changed to {newValue}");
 			allowLaneChangesWhileGoingStraight = newValue;
+		}
+
+		private static void onBanRegularTrafficOnBusLanesChanged(bool newValue) {
+			if (!checkGameLoaded())
+				return;
+
+			Log._Debug($"banRegularTrafficOnBusLanes changed to {newValue}");
+			banRegularTrafficOnBusLanes = newValue;
+			VehicleRestrictionsManager.Instance.ClearCache();
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		private static void onStrongerRoadConditionEffectsChanged(bool newStrongerRoadConditionEffects) {
@@ -658,14 +781,6 @@ namespace TrafficManager.State {
 			Log._Debug($"{varName} changed to {newVal}");
 		}
 
-
-		private static void onClickForgetToggledLights() {
-			if (!checkGameLoaded())
-				return;
-
-			Flags.resetTrafficLights(false);
-		}
-
 		private static void onClickResetStuckEntities() {
 			if (!checkGameLoaded())
 				return;
@@ -755,26 +870,9 @@ namespace TrafficManager.State {
 				advancedAIToggle.isChecked = newAdvancedAI;
 
 			if (!newAdvancedAI) {
-				setDynamicPathRecalculation(false);
 				setHighwayRules(false);
 				setPreferOuterLane(false);
 			}
-		}
-
-		public static void setDynamicPathRecalculation(bool value) {
-#if DEBUG
-			/*if (SystemInfo.processorCount < DYNAMIC_RECALC_MIN_PROCESSOR_COUNT)
-				value = false;*/
-#endif
-
-			dynamicPathRecalculation = value;
-
-			if (dynamicPathRecalculationToggle != null)
-				dynamicPathRecalculationToggle.isChecked = value;
-		}
-
-		public static bool IsDynamicPathRecalculationActive() {
-			return Options.dynamicPathRecalculation;
 		}
 
 		public static void setEvacBussesMayIgnoreRules(bool value) {
@@ -784,6 +882,12 @@ namespace TrafficManager.State {
 			evacBussesMayIgnoreRules = value;
 			if (evacBussesMayIgnoreRulesToggle != null)
 				evacBussesMayIgnoreRulesToggle.isChecked = value;
+		}
+
+		public static void setInstantEffects(bool value) {
+			instantEffects = value;
+			if (instantEffectsToggle != null)
+				instantEffectsToggle.isChecked = value;
 		}
 
 		public static void setMayEnterBlockedJunctions(bool newMayEnterBlockedJunctions) {
@@ -830,34 +934,61 @@ namespace TrafficManager.State {
 				allowLaneChangesWhileGoingStraightToggle.isChecked = value;
 		}
 
+		public static void setBanRegularTrafficOnBusLanes(bool value) {
+			banRegularTrafficOnBusLanes = value;
+			if (banRegularTrafficOnBusLanesToggle != null)
+				banRegularTrafficOnBusLanesToggle.isChecked = value;
+
+			VehicleRestrictionsManager.Instance.ClearCache();
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
+		}
+
 		public static void setPrioritySignsOverlay(bool newPrioritySignsOverlay) {
 			prioritySignsOverlay = newPrioritySignsOverlay;
 			if (prioritySignsOverlayToggle != null)
 				prioritySignsOverlayToggle.isChecked = newPrioritySignsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setTimedLightsOverlay(bool newTimedLightsOverlay) {
 			timedLightsOverlay = newTimedLightsOverlay;
 			if (timedLightsOverlayToggle != null)
 				timedLightsOverlayToggle.isChecked = newTimedLightsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setSpeedLimitsOverlay(bool newSpeedLimitsOverlay) {
 			speedLimitsOverlay = newSpeedLimitsOverlay;
 			if (speedLimitsOverlayToggle != null)
 				speedLimitsOverlayToggle.isChecked = newSpeedLimitsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setVehicleRestrictionsOverlay(bool newVehicleRestrictionsOverlay) {
 			vehicleRestrictionsOverlay = newVehicleRestrictionsOverlay;
 			if (vehicleRestrictionsOverlayToggle != null)
 				vehicleRestrictionsOverlayToggle.isChecked = newVehicleRestrictionsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
+		}
+
+		public static void setParkingRestrictionsOverlay(bool newParkingRestrictionsOverlay) {
+			parkingRestrictionsOverlay = newParkingRestrictionsOverlay;
+			if (parkingRestrictionsOverlayToggle != null)
+				parkingRestrictionsOverlayToggle.isChecked = newParkingRestrictionsOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setJunctionRestrictionsOverlay(bool newValue) {
 			junctionRestrictionsOverlay = newValue;
 			if (junctionRestrictionsOverlayToggle != null)
 				junctionRestrictionsOverlayToggle.isChecked = newValue;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setConnectedLanesOverlay(bool newValue) {
@@ -870,6 +1001,8 @@ namespace TrafficManager.State {
 			nodesOverlay = newNodesOverlay;
 			if (nodesOverlayToggle != null)
 				nodesOverlayToggle.isChecked = newNodesOverlay;
+
+			UIBase.GetTrafficManagerTool(false)?.InitializeSubTools();
 		}
 
 		public static void setVehicleOverlay(bool newVal) {
@@ -912,6 +1045,15 @@ namespace TrafficManager.State {
 				enableVehicleRestrictionsToggle.isChecked = newValue;
 			if (!newValue)
 				setVehicleRestrictionsOverlay(false);
+		}
+
+		public static void setParkingRestrictionsEnabled(bool newValue) {
+			MenuRebuildRequired = true;
+			parkingRestrictionsEnabled = newValue;
+			if (enableParkingRestrictionsToggle != null)
+				enableParkingRestrictionsToggle.isChecked = newValue;
+			if (!newValue)
+				setParkingRestrictionsOverlay(false);
 		}
 
 		public static void setJunctionRestrictionsEnabled(bool newValue) {
