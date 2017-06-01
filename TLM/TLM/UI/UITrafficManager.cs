@@ -224,7 +224,7 @@ namespace TrafficManager.UI {
 			button.textColor = new Color32(255, 255, 255, 255);
 			button.playAudioEvents = true;
 			button.text = text;
-			button.relativePosition = new Vector3(15f, y);
+			button.relativePosition = new Vector3(15f, 0f);
 			button.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
 				deactivateButtons();
 				eventClick(component, eventParam);
