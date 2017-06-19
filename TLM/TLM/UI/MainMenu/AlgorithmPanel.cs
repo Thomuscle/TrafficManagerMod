@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using TrafficManager.Manager;
 using CSUtil.Commons;
 using ColossalFramework.Plugins;
+using TrafficManager.API;
 
 namespace TrafficManager.UI.MainMenu {
 
@@ -97,6 +98,7 @@ namespace TrafficManager.UI.MainMenu {
 		}
         private static void clickToggleAllTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
         {
+            
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
             RoadBaseAI.TrafficLightState vLightState;
