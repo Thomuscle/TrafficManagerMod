@@ -10,16 +10,31 @@ using CSUtil.Commons;
 
 namespace TrafficManager.TrafficLight {
 	public class TrafficLightSimulation : IObserver<NodeGeometry> {
-		/// <summary>
-		/// Timed traffic light by node id
-		/// </summary>
-		public TimedTrafficLights TimedLight {
+        /*Recently added functions:
+            -FlexibleLight getter/setter
+            -SetupFlexibleTrafficLight
+            -DestroyFlexibleTrafficLight
+            -IsFlexibleLight
+          Need to update "OnUpdate" for FlexibleLights
+        */
+
+
+        /// <summary>
+        /// Timed traffic light by node id
+        /// </summary>
+        public TimedTrafficLights TimedLight {
 			get; private set;
 		} = null;
 
 		public ushort NodeId {
 			get; private set;
 		}
+
+        //FlexibleLight getter/setter
+        public FlexibleTrafficLights FlexibleLight
+        {
+            get; private set;
+        } = null;
 
 		private bool manualTrafficLights = false;
 
@@ -32,7 +47,8 @@ namespace TrafficManager.TrafficLight {
 				"\t" + $"NodeId = {NodeId}\n" +
 				"\t" + $"manualTrafficLights = {manualTrafficLights}\n" +
 				"\t" + $"TimedLight = {TimedLight}\n" +
-				"TrafficLightSimulation]";
+                "\t" + $"FlexibleLight = {FlexibleLight}\n" +
+                "TrafficLightSimulation]";
 		}
 
 		public TrafficLightSimulation(ushort nodeId) {
@@ -88,9 +104,34 @@ namespace TrafficManager.TrafficLight {
 				timedLight.Destroy();*/
 		}
 
-		public void Destroy() {
+        //Sets up FlexibleLight
+        public void SetupFlexibleTrafficLight(List<ushort> nodeGroup)
+        {
+            if (IsManualLight())
+                DestroyManualTrafficLight();
+
+            FlexibleLight = new FlexibleTrafficLights(NodeId, nodeGroup);
+        }
+
+        //Destroys FlexibleLight
+        internal void DestroyFlexibleTrafficLight()
+        {
+            if (!IsFlexibleLight())
+                return;
+            var flexibleLight = FlexibleLight;
+            FlexibleLight = null;
+
+            if (flexibleLight != null)
+            {
+                flexibleLight.Destroy();
+            }
+        }
+
+
+        public void Destroy() {
 			DestroyTimedTrafficLight();
-			DestroyManualTrafficLight();
+            DestroyManualTrafficLight();
+            DestroyFlexibleTrafficLight();
 		}
 
 		public bool IsTimedLight() {
@@ -101,6 +142,12 @@ namespace TrafficManager.TrafficLight {
 			return manualTrafficLights;
 		}
 
+        //Checks for FlexibleLight
+        public bool IsFlexibleLight()
+        {
+            return FlexibleLight != null;
+        }
+
 		public bool IsTimedLightActive() {
 			return IsTimedLight() && TimedLight.IsStarted();
 		}
@@ -109,6 +156,7 @@ namespace TrafficManager.TrafficLight {
 			return IsManualLight() || IsTimedLightActive();
 		}
 
+        //Needs updating for FlexibleTrafficLights
 		public void OnUpdate(NodeGeometry nodeGeometry) {
 #if DEBUG
 			Log._Debug($"TrafficLightSimulation: OnUpdate @ node {NodeId} ({nodeGeometry.NodeId})");
