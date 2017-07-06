@@ -45,47 +45,42 @@ namespace TrafficManager.API
             return segments;
         }
 
+        //for a nodeid (intersection), get all the possible directions for 
+        //each segment(traffic light) and put them into a binary left-straight-right array
         public ushort[] getSegmentDirections(ushort nodeID)
         {
             ushort segmentCount = 0;
+            
+            //get the net node for the node id
             Constants.ServiceFactory.NetService.ProcessNode(nodeID, delegate (ushort nId, ref NetNode node)
             {
                 segmentCount = (ushort)node.CountSegments();
                 return true;
             });
-            ushort[] lsrArray = new ushort[segmentCount * 3];
+
+            //initialise array
+            ushort[] lsrArray = new ushort[segmentCount * 3 - 1];
             NodeGeometry nodeGeometry = NodeGeometry.Get(nodeID);
             int counter = 0;
+
+            //loop through each light at intersection
             foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
             {
                 if (end.NumLeftSegments > 0)
-                {
-                    lsrArray[counter * 3] = 1;
-                }
+                {lsrArray[counter * 3] = 1;}
                 else
-                {
-                    lsrArray[counter * 3] = 0;
-                }
+                {lsrArray[counter * 3] = 0;}
                 if (end.NumStraightSegments > 0)
-                {
-                    lsrArray[counter * 3 + 1] = 1;
-                }
+                {lsrArray[counter * 3 + 1] = 1;}
                 else
-                {
-                    lsrArray[counter * 3 + 1] = 0;
-                }
+                {lsrArray[counter * 3 + 1] = 0;}
                 if (end.NumRightSegments > 0)
-                {
-                    lsrArray[counter * 3 + 2] = 1;
-                }
+                {lsrArray[counter * 3 + 2] = 1;}
                 else
-                {
-                    lsrArray[counter * 3 + 2] = 0;
-                }
+                {lsrArray[counter * 3 + 2] = 0;}
                 counter++;
             }
             return lsrArray;
-
         }
     }
 }
