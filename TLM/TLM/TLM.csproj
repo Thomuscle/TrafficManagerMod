@@ -122,7 +122,9 @@
     <Compile Include="Manager\UtilityManager.cs" />
     <Compile Include="Manager\ExtCitizenInstanceManager.cs" />
     <Compile Include="State\GlobalConfig.cs" />
+    <Compile Include="TrafficLight\FlexibleTrafficLights.cs" />
     <Compile Include="TrafficLight\CustomSegmentLights.cs" />
+    <Compile Include="TrafficLight\FlexibleTrafficLightsStep.cs" />
     <Compile Include="TrafficLight\ICustomSegmentLightsManager.cs" />
     <Compile Include="TrafficLight\TrafficLightSimulation.cs" />
     <Compile Include="Traffic\ExtBuilding.cs" />

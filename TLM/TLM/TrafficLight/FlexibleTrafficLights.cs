@@ -370,6 +370,7 @@ namespace TrafficManager.TrafficLight
             return Steps[stepId];
         }
 
+        //entry point into the light simulation called from base(kind of)
         public void SimulationStep()
         {
             // TODO [version 1.10] this method is currently called on each node, but should be called on the master node only
@@ -417,6 +418,13 @@ namespace TrafficManager.TrafficLight
 				Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: NodeId={NodeId} Setting lights (2)");
 #endif
 
+
+            //this is all timed light logic that happens during a simulationstep (pretty sure this is all about figuring out when to go to the next step and what the next step is) 
+            //the way they get vehicle flow info may be useful but all of this will have to change
+            //they use minTime, minFlow, maxWait, calcwaitflow for this. 
+            //What we need to do is replace all this with api calls that check conditions that determine when the next step occurs and what the next step is.
+            //so essentially we are moving this logic(our equivalent of this logic) to api 
+            //-jarrod
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             if (Steps[CurrentStep].NextStepRefIndex < 0)
             {
@@ -427,11 +435,14 @@ namespace TrafficManager.TrafficLight
 #endif
                 // next step has not yet identified yet. check for minTime=0 steps
                 int nextStepIndex = (CurrentStep + 1) % NumSteps();
-                if (Steps[nextStepIndex].minTime == 0)
+
+              
+                if (Steps[nextStepIndex].minTime == 0)//
                 {
                     // next step has minTime=0. calculate flow/wait ratios and compare.
                     int prevStepIndex = CurrentStep;
 
+                    //getting traffic flow data at lights
                     float maxWaitFlowDiff = Steps[CurrentStep].minFlow - Steps[CurrentStep].maxWait;
                     if (float.IsNaN(maxWaitFlowDiff))
                         maxWaitFlowDiff = float.MinValue;
@@ -442,7 +453,7 @@ namespace TrafficManager.TrafficLight
 						Log._Debug($"FlexibleTrafficLights.SimulationStep(): Next step {nextStepIndex} has minTime = 0 at timed light {NodeId}. Old step {CurrentStep} has waitFlowDiff={maxWaitFlowDiff} (flow={Steps[CurrentStep].minFlow}, wait={Steps[CurrentStep].maxWait}).");
 					}
 #endif
-
+                    //
                     while (nextStepIndex != prevStepIndex)
                     {
                         float wait;
@@ -450,6 +461,8 @@ namespace TrafficManager.TrafficLight
                         Steps[nextStepIndex].calcWaitFlow(false, nextStepIndex, out wait, out flow);
 
                         float flowWaitDiff = flow - wait;
+
+                        //if conditions met then set the next step to be the best next step
                         if (flowWaitDiff > maxWaitFlowDiff)
                         {
                             maxWaitFlowDiff = flowWaitDiff;
@@ -461,17 +474,19 @@ namespace TrafficManager.TrafficLight
 							Log._Debug($"FlexibleTrafficLights.SimulationStep(): Checking upcoming step {nextStepIndex} @ node {NodeId}: flow={flow} wait={wait} minTime={Steps[nextStepIndex].minTime}. bestWaitFlowDiff={bestNextStepIndex}, bestNextStepIndex={bestNextStepIndex}");
 						}
 #endif
-
+                        //if the next step has a min time (The number of time units this traffic light remains in the current state at least)
                         if (Steps[nextStepIndex].minTime != 0)
                         {
+                            //update the best next step index
                             bestNextStepIndex = (prevStepIndex + 1) % NumSteps();
                             break;
                         }
 
+                        //update the next step index
                         nextStepIndex = (nextStepIndex + 1) % NumSteps();
                     }
 
-
+                    //if the best step to go to next happens to be the current step
                     if (bestNextStepIndex == CurrentStep)
                     {
 #if DEBUGTTL
@@ -480,7 +495,7 @@ namespace TrafficManager.TrafficLight
 						}
 #endif
 
-                        // restart the current step
+                        // restart the current step 
                         foreach (ushort slaveNodeId in NodeGroup)
                         {
                             TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
@@ -494,6 +509,7 @@ namespace TrafficManager.TrafficLight
                         }
                         return;
                     }
+                    //if the best step to go to next isnt the current step
                     else
                     {
 #if DEBUGTTL
@@ -510,11 +526,12 @@ namespace TrafficManager.TrafficLight
                             {
                                 continue;
                             }
-                            FlexibleTrafficLights timedLights = slaveSim.TimedLight;
+                            FlexibleTrafficLights timedLights = slaveSim.FlexibleLight;
                             timedLights.Steps[CurrentStep].NextStepRefIndex = bestNextStepIndex;
                         }
                     }
                 }
+                //if the next step doesnt have a min time, logic is much simpler -  just set next index 
                 else
                 {
                     Steps[CurrentStep].NextStepRefIndex = nextStepIndex;
@@ -523,6 +540,7 @@ namespace TrafficManager.TrafficLight
 
             SetLights(); // check if this is needed
 
+            
             if (!Steps[CurrentStep].IsEndTransitionDone())
             {
 #if DEBUGTTL
@@ -549,7 +567,7 @@ namespace TrafficManager.TrafficLight
                 {
                     continue;
                 }
-                FlexibleTrafficLights timedLights = slaveSim.TimedLight;
+                FlexibleTrafficLights timedLights = slaveSim.FlexibleLight;
                 timedLights.CurrentStep = newStepIndex;
 
 #if DEBUGTTL
@@ -797,7 +815,7 @@ namespace TrafficManager.TrafficLight
             TrafficLightSimulation masterSim = TrafficLightSimulationManager.Instance.GetNodeSimulation(masterNodeId);
             if (masterSim == null || !masterSim.IsTimedLight())
                 return null;
-            return masterSim.TimedLight;
+            return masterSim.FlexibleLight;
         }
 
         internal void SetTestMode(bool testMode)
