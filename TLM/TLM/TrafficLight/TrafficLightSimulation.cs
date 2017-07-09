@@ -162,7 +162,7 @@ namespace TrafficManager.TrafficLight {
 			Log._Debug($"TrafficLightSimulation: OnUpdate @ node {NodeId} ({nodeGeometry.NodeId})");
 #endif
 
-			if (!IsManualLight() && !IsTimedLight())
+			if (!IsManualLight() && !IsTimedLight() && !IsFlexibleLight())
 				return;
 
 			if (!nodeGeometry.IsValid()) {
@@ -204,7 +204,9 @@ namespace TrafficManager.TrafficLight {
 
 			TimedLight?.OnGeometryUpdate();
 			TimedLight?.housekeeping();
-		}
+            FlexibleLight?.OnGeometryUpdate();
+            FlexibleLight?.housekeeping();
+        }
 
 		internal void housekeeping() {
 			TimedLight?.housekeeping(); // removes unused step lights

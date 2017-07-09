@@ -96,7 +96,86 @@ namespace TrafficManager.UI.MainMenu {
 			}
 			base.OnPositionChanged();
 		}
+
         private static void clickToggleAllTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            RoadBaseAI.TrafficLightState vLightState;
+            RoadBaseAI.TrafficLightState pLightState;
+            bool vehicles;
+            bool pedestrians;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+                var node = netManager.m_nodes.m_buffer[i];
+
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+
+                if (hasLights)
+                {
+                    TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
+                    if (_areAllTrafficLightsRed)
+                    {
+                        sim.DestroyFlexibleTrafficLight();
+                    }
+                    else
+                    {
+
+                        List<ushort> nodeGroup = new List<ushort>();
+                        nodeGroup.Add(i);
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
+                        sim.SetupFlexibleTrafficLight(nodeGroup);
+                        NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+
+                        ushort[] segArray = new ushort[nodeGeometry.SegmentEndGeometries.Length];
+                        int i2 = 0;
+
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            segArray[i2] = end.SegmentId;
+                            i2++;
+                        }
+
+                            int k = 0;
+                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
+
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+                            ushort[] lsrArray = new ushort[node.CountSegments()*3];
+                            
+                            for (int j = 0; j <lsrArray.Length; j++)
+                            {
+                                if(j == k*3 || j == k * 3 + 1 || j == k * 3 + 2)
+                                {
+                                    lsrArray[j] = 1;
+                                }
+                                else
+                                {
+                                    lsrArray[j] = 0;
+                                }
+                            }
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
+                            sim.FlexibleLight.AddStep(lsrArray, segArray, end.SegmentId);
+                            k++;
+                        }
+
+
+                        sim.FlexibleLight.Start();
+                    }
+
+
+                }
+
+            }
+            _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
+
+        }
+    
+        private static void clickToggleAllTimedTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
         {
             
             var netManager = Singleton<NetManager>.instance;

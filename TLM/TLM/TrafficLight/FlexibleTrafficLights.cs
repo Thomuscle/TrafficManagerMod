@@ -371,52 +371,16 @@ namespace TrafficManager.TrafficLight
         }
 
         //entry point into the light simulation called from base(kind of)
-        public void SimulationStep()
-        {
-            // TODO [version 1.10] this method is currently called on each node, but should be called on the master node only
-
-#if DEBUGTTL
-			bool debug = GlobalConfig.Instance.DebugSwitches[7] && GlobalConfig.Instance.TTLDebugNodeId == NodeId;
-#endif
-
-            if (!IsMasterNode() || !IsStarted())
-            {
-#if DEBUGTTL
-				if (debug)
-					Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: *STOP* NodeId={NodeId} isMasterNode={IsMasterNode()} IsStarted={IsStarted()}");
-#endif
-                return;
-            }
-            // we are the master node
-
-            /*if (!housekeeping()) {
-#if DEBUGTTL
-				Log.Warning($"TTL SimStep: *STOP* NodeId={NodeId} Housekeeping detected that this timed traffic light has become invalid: {NodeId}.");
-#endif
-				Stop();
-				return;
-			}*/
-
-#if DEBUGTTL
-			if (debug)
-				Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: NodeId={NodeId} Setting lights (1)");
-#endif
+        public void SimulationStep() {
             SetLights();
 
             if (!Steps[CurrentStep].StepDone(true))
             {
-#if DEBUGTTL
-				if (debug)
-					Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: *STOP* NodeId={NodeId} current step ({CurrentStep}) is not done.");
-#endif
+
                 return;
             }
             // step is done
 
-#if DEBUGTTL
-			if (debug)
-				Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: NodeId={NodeId} Setting lights (2)");
-#endif
 
 
             //this is all timed light logic that happens during a simulationstep (pretty sure this is all about figuring out when to go to the next step and what the next step is) 
@@ -425,116 +389,37 @@ namespace TrafficManager.TrafficLight
             //What we need to do is replace all this with api calls that check conditions that determine when the next step occurs and what the next step is.
             //so essentially we are moving this logic(our equivalent of this logic) to api 
             //-jarrod
+
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            if (Steps[CurrentStep].NextStepRefIndex < 0)
-            {
-#if DEBUGTTL
-				if (debug) {
-					Log._Debug($"FlexibleTrafficLights.SimulationStep(): Step {CurrentStep} is done at timed light {NodeId}. Determining next step.");
-				}
-#endif
-                // next step has not yet identified yet. check for minTime=0 steps
-                int nextStepIndex = (CurrentStep + 1) % NumSteps();
+            if (Steps[CurrentStep].NextStepRefIndex < 0)            {
 
-              
-                if (Steps[nextStepIndex].minTime == 0)//
+                //TODO logic for determining the next step
+                //int nextStepIndex = (CurrentStep + 1) % NumSteps();
+
+                int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps());
+
+                //TODO function that returns the next step index (current one or another index) 
+                //  int nextStepIndex = APIfuncGetNExtStepIndex()
+
+                if (nextStepIndex == CurrentStep)
                 {
-                    // next step has minTime=0. calculate flow/wait ratios and compare.
-                    int prevStepIndex = CurrentStep;
+                    // restart the current step                    
+                    TrafficLightSimulation sim = tlsMan.GetNodeSimulation(NodeId);                 
 
-                    //getting traffic flow data at lights
-                    float maxWaitFlowDiff = Steps[CurrentStep].minFlow - Steps[CurrentStep].maxWait;
-                    if (float.IsNaN(maxWaitFlowDiff))
-                        maxWaitFlowDiff = float.MinValue;
-                    int bestNextStepIndex = prevStepIndex;
-
-#if DEBUGTTL
-					if (debug) {
-						Log._Debug($"FlexibleTrafficLights.SimulationStep(): Next step {nextStepIndex} has minTime = 0 at timed light {NodeId}. Old step {CurrentStep} has waitFlowDiff={maxWaitFlowDiff} (flow={Steps[CurrentStep].minFlow}, wait={Steps[CurrentStep].maxWait}).");
-					}
-#endif
-                    //
-                    while (nextStepIndex != prevStepIndex)
-                    {
-                        float wait;
-                        float flow;
-                        Steps[nextStepIndex].calcWaitFlow(false, nextStepIndex, out wait, out flow);
-
-                        float flowWaitDiff = flow - wait;
-
-                        //if conditions met then set the next step to be the best next step
-                        if (flowWaitDiff > maxWaitFlowDiff)
-                        {
-                            maxWaitFlowDiff = flowWaitDiff;
-                            bestNextStepIndex = nextStepIndex;
-                        }
-
-#if DEBUGTTL
-						if (debug) {
-							Log._Debug($"FlexibleTrafficLights.SimulationStep(): Checking upcoming step {nextStepIndex} @ node {NodeId}: flow={flow} wait={wait} minTime={Steps[nextStepIndex].minTime}. bestWaitFlowDiff={bestNextStepIndex}, bestNextStepIndex={bestNextStepIndex}");
-						}
-#endif
-                        //if the next step has a min time (The number of time units this traffic light remains in the current state at least)
-                        if (Steps[nextStepIndex].minTime != 0)
-                        {
-                            //update the best next step index
-                            bestNextStepIndex = (prevStepIndex + 1) % NumSteps();
-                            break;
-                        }
-
-                        //update the next step index
-                        nextStepIndex = (nextStepIndex + 1) % NumSteps();
-                    }
-
-                    //if the best step to go to next happens to be the current step
-                    if (bestNextStepIndex == CurrentStep)
-                    {
-#if DEBUGTTL
-						if (debug) {
-							Log._Debug($"FlexibleTrafficLights.SimulationStep(): Best next step {bestNextStepIndex} (wait/flow diff = {maxWaitFlowDiff}) equals CurrentStep @ node {NodeId}.");
-						}
-#endif
-
-                        // restart the current step 
-                        foreach (ushort slaveNodeId in NodeGroup)
-                        {
-                            TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
-                            if (slaveSim == null || !slaveSim.IsTimedLight())
-                            {
-                                continue;
-                            }
-
-                            slaveSim.TimedLight.Steps[CurrentStep].Start(CurrentStep);
-                            slaveSim.TimedLight.Steps[CurrentStep].UpdateLiveLights();
-                        }
-                        return;
-                    }
-                    //if the best step to go to next isnt the current step
-                    else
-                    {
-#if DEBUGTTL
-						if (debug) {
-							Log._Debug($"FlexibleTrafficLights.SimulationStep(): Best next step {bestNextStepIndex} (wait/flow diff = {maxWaitFlowDiff}) does not equal CurrentStep @ node {NodeId}.");
-						}
-#endif
-
-                        // set next step reference index for assuring a correct end transition
-                        foreach (ushort slaveNodeId in NodeGroup)
-                        {
-                            TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
-                            if (slaveSim == null || !slaveSim.IsTimedLight())
-                            {
-                                continue;
-                            }
-                            FlexibleTrafficLights timedLights = slaveSim.FlexibleLight;
-                            timedLights.Steps[CurrentStep].NextStepRefIndex = bestNextStepIndex;
-                        }
-                    }
+                    sim.FlexibleLight.Steps[CurrentStep].Start(CurrentStep);
+                    sim.FlexibleLight.Steps[CurrentStep].UpdateLiveLights();
+                    
+                    return;
                 }
-                //if the next step doesnt have a min time, logic is much simpler -  just set next index 
                 else
                 {
-                    Steps[CurrentStep].NextStepRefIndex = nextStepIndex;
+                    // set next step reference index for assuring a correct end transition              
+                    
+                    TrafficLightSimulation sim = tlsMan.GetNodeSimulation(NodeId);
+                       
+                    FlexibleTrafficLights flexibleLightsLocal = sim.FlexibleLight;
+                    flexibleLightsLocal.Steps[CurrentStep].NextStepRefIndex = nextStepIndex;
+                    
                 }
             }
 
@@ -543,42 +428,25 @@ namespace TrafficManager.TrafficLight
             
             if (!Steps[CurrentStep].IsEndTransitionDone())
             {
-#if DEBUGTTL
-				if (debug)
-					Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: *STOP* NodeId={NodeId} current step ({CurrentStep}): end transition is not done.");
-#endif
                 return;
             }
             // ending transition (yellow) finished
-
-#if DEBUGTTL
-			if (debug)
-				Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: NodeId={NodeId} ending transition done. NodeGroup={string.Join(", ", NodeGroup.Select(x => x.ToString()).ToArray())}, nodeId={NodeId}, NumSteps={NumSteps()}");
-#endif
-
             // change step
             int newStepIndex = Steps[CurrentStep].NextStepRefIndex;
             int oldStepIndex = CurrentStep;
 
-            foreach (ushort slaveNodeId in NodeGroup)
-            {
-                TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
-                if (slaveSim == null || !slaveSim.IsTimedLight())
-                {
-                    continue;
-                }
-                FlexibleTrafficLights timedLights = slaveSim.FlexibleLight;
-                timedLights.CurrentStep = newStepIndex;
+           
+            TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(NodeId);
+              
+            FlexibleTrafficLights flexibleLights = slaveSim.FlexibleLight;
+            flexibleLights.CurrentStep = newStepIndex;
 
-#if DEBUGTTL
-				if (debug)
-					Log._Debug($"FlexibleTrafficLights.SimulationStep(): TTL SimStep: NodeId={slaveNodeId} setting lights of next step: {CurrentStep}");
-#endif
 
-                timedLights.Steps[oldStepIndex].NextStepRefIndex = -1;
-                timedLights.Steps[newStepIndex].Start(oldStepIndex);
-                timedLights.Steps[newStepIndex].UpdateLiveLights();
-            }
+
+            flexibleLights.Steps[oldStepIndex].NextStepRefIndex = -1;
+            flexibleLights.Steps[newStepIndex].Start(oldStepIndex);
+            flexibleLights.Steps[newStepIndex].UpdateLiveLights();
+            
         }
 
         public void SetLights(bool noTransition = false)
@@ -601,86 +469,7 @@ namespace TrafficManager.TrafficLight
                 }
                 slaveSim.TimedLight.Steps[CurrentStep].UpdateLiveLights(noTransition);
             }
-        }
-
-        public void SkipStep(bool setLights = true, int prevStepRefIndex = -1)
-        {
-            if (!IsMasterNode())
-                return;
-
-            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-
-            var newCurrentStep = (CurrentStep + 1) % NumSteps();
-            foreach (ushort slaveNodeId in NodeGroup)
-            {
-                TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
-                if (slaveSim == null || !slaveSim.IsTimedLight())
-                {
-                    continue;
-                }
-
-                slaveSim.TimedLight.Steps[CurrentStep].SetStepDone();
-                slaveSim.TimedLight.CurrentStep = newCurrentStep;
-                slaveSim.TimedLight.Steps[newCurrentStep].Start(prevStepRefIndex);
-                if (setLights)
-                    slaveSim.TimedLight.Steps[newCurrentStep].UpdateLiveLights();
-            }
-        }
-
-        public long CheckNextChange(ushort segmentId, bool startNode, ExtVehicleType vehicleType, int lightType)
-        {
-            var curStep = CurrentStep;
-            var nextStep = (CurrentStep + 1) % NumSteps();
-            var numFrames = Steps[CurrentStep].MaxTimeRemaining();
-
-            RoadBaseAI.TrafficLightState currentState;
-            CustomSegmentLights segmentLights = CustomSegmentLightsManager.Instance.GetSegmentLights(segmentId, startNode, false);
-            if (segmentLights == null)
-            {
-                Log._Debug($"CheckNextChange: No segment lights at node {NodeId}, segment {segmentId}");
-                return 99;
-            }
-            CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
-            if (segmentLight == null)
-            {
-                Log._Debug($"CheckNextChange: No segment light at node {NodeId}, segment {segmentId}");
-                return 99;
-            }
-
-            if (lightType == 0)
-                currentState = segmentLight.LightMain;
-            else if (lightType == 1)
-                currentState = segmentLight.LightLeft;
-            else if (lightType == 2)
-                currentState = segmentLight.LightRight;
-            else
-                currentState = segmentLights.PedestrianLightState == null ? RoadBaseAI.TrafficLightState.Red : (RoadBaseAI.TrafficLightState)segmentLights.PedestrianLightState;
-
-
-            while (true)
-            {
-                if (nextStep == curStep)
-                {
-                    numFrames = 99;
-                    break;
-                }
-
-                var light = Steps[nextStep].GetLight(segmentId, vehicleType, lightType);
-
-                if (light != currentState)
-                {
-                    break;
-                }
-                else
-                {
-                    numFrames += Steps[nextStep].maxTime;
-                }
-
-                nextStep = (nextStep + 1) % NumSteps();
-            }
-
-            return numFrames;
-        }
+        }       
 
         public void ResetSteps()
         {

@@ -12,10 +12,10 @@ using CSUtil.Commons;
 using TrafficManager.Geometry;
 namespace TrafficManager.API
 {
-    public class APIget
+    public static class APIget
     {
         //returns a list of nodes with traffic lights 
-        public List<NetNode> getNodes()
+        public static List<NetNode> getNodes()
         {
             List<NetNode> lightNodes = new List<NetNode>();
             var netManager = Singleton<NetManager>.instance;
@@ -33,7 +33,7 @@ namespace TrafficManager.API
             return lightNodes;
         }
 
-        public List<ushort> getSegments(NetNode node)
+        public static List<ushort> getSegments(NetNode node)
         {
             List<ushort> segments = new List<ushort>();
             var netManager = Singleton<NetManager>.instance;
@@ -47,7 +47,7 @@ namespace TrafficManager.API
 
         //for a nodeid (intersection), get all the possible directions for 
         //each segment(traffic light) and put them into a binary left-straight-right array
-        public ushort[] getSegmentDirections(ushort nodeID)
+        public static ushort[] getSegmentDirections(ushort nodeID)
         {
             ushort segmentCount = 0;
             
@@ -81,6 +81,34 @@ namespace TrafficManager.API
                 counter++;
             }
             return lsrArray;
+        }
+
+        public static uint getCurrentFrame()
+        {
+            return Constants.ServiceFactory.SimulationService.CurrentFrameIndex >> 6;
+        }
+
+        static bool stepHappening = false;
+        static uint startFrame = 0;
+
+        public static int getNextIndex(int currentStep, int noOfSteps)
+        {
+            if (!stepHappening)
+            {
+                startFrame = getCurrentFrame();
+                stepHappening = true;
+            }
+
+            if( Math.Max(0, startFrame + 5 - getCurrentFrame()) == 0)
+            {
+                stepHappening = false;
+                return (currentStep + 1) % noOfSteps;
+            }
+            else
+            {
+                return currentStep;
+            }
+
         }
     }
 }

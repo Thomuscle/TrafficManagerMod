@@ -532,7 +532,7 @@ namespace TrafficManager.TrafficLight {
 						Log._Debug($"TimedTrafficLights.SimulationStep(): Next step {nextStepIndex} has minTime = 0 at timed light {NodeId}. Old step {CurrentStep} has waitFlowDiff={maxWaitFlowDiff} (flow={Steps[CurrentStep].minFlow}, wait={Steps[CurrentStep].maxWait}).");
 					}
 #endif
-
+                    //all determining if best next step is the current one or the next one
 					while (nextStepIndex != prevStepIndex) {
 						float wait;
 						float flow;
