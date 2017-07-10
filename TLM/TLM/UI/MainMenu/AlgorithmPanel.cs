@@ -130,19 +130,29 @@ namespace TrafficManager.UI.MainMenu {
                         NodeGeometry nodeGeometry = NodeGeometry.Get(i);
 
                         ushort[] segArray = new ushort[nodeGeometry.SegmentEndGeometries.Length];
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "length: " + nodeGeometry.SegmentEndGeometries.Length);
                         int i2 = 0;
 
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+                            
                             segArray[i2] = end.SegmentId;
                             i2++;
+                            
+                            
                         }
 
-                            int k = 0;
+                        //this doesnt occur, never leaves the above loop
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out of first for loop");
+                        int k = 0;
                         //Instead of next foreach statement API Call to figure out possible steps and add each one of those
 
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Number of segments: "+ node.CountSegments());
                             if (end == null || end.OutgoingOneWay)
                                 continue;
                             ushort[] lsrArray = new ushort[node.CountSegments()*3];
@@ -158,6 +168,7 @@ namespace TrafficManager.UI.MainMenu {
                                     lsrArray[j] = 0;
                                 }
                             }
+                            //this is not printing
                             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
                             sim.FlexibleLight.AddStep(lsrArray, segArray, end.SegmentId);
                             k++;
