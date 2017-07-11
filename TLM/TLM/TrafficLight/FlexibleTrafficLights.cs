@@ -13,6 +13,7 @@ using System.Threading;
 using TrafficManager.State;
 using GenericGameBridge.Service;
 using CSUtil.Commons;
+using ColossalFramework.Plugins;
 
 
 namespace TrafficManager.TrafficLight
@@ -211,6 +212,8 @@ namespace TrafficManager.TrafficLight
             Steps[0].Start();
             Steps[0].UpdateLiveLights();
 
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Started FTL");
+
             started = true;
         }
 
@@ -372,15 +375,25 @@ namespace TrafficManager.TrafficLight
 
         //entry point into the light simulation called from base(kind of)
         public void SimulationStep() {
-            SetLights();
-
-            if (!Steps[CurrentStep].StepDone(true))
+            if (!IsStarted())
             {
-
                 return;
             }
+
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Step: " + CurrentStep.ToString());
+
+
+            SetLights();
+
+            //if (!Steps[CurrentStep].StepDone(true))
+            //{
+            //    Log.Info($"Current Step in !Steps.stepdone ");
+
+            //    return;
+            //}
             // step is done
 
+            
 
 
             //this is all timed light logic that happens during a simulationstep (pretty sure this is all about figuring out when to go to the next step and what the next step is) 
@@ -391,18 +404,23 @@ namespace TrafficManager.TrafficLight
             //-jarrod
 
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            
+            Log.Info($"outside if <0");
             if (Steps[CurrentStep].NextStepRefIndex < 0)            {
-
+                Log.Info($"inside");
                 //TODO logic for determining the next step
                 //int nextStepIndex = (CurrentStep + 1) % NumSteps();
 
                 int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps());
+
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 
                 //TODO function that returns the next step index (current one or another index) 
                 //  int nextStepIndex = APIfuncGetNExtStepIndex()
 
                 if (nextStepIndex == CurrentStep)
                 {
+                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Restarting Current Step ");
                     // restart the current step                    
                     TrafficLightSimulation sim = tlsMan.GetNodeSimulation(NodeId);                 
 
@@ -423,13 +441,14 @@ namespace TrafficManager.TrafficLight
                 }
             }
 
-            SetLights(); // check if this is needed
+            //SetLights(); // check if this is needed
 
             
-            if (!Steps[CurrentStep].IsEndTransitionDone())
-            {
-                return;
-            }
+            //if (!Steps[CurrentStep].IsEndTransitionDone())
+            //{
+            //    Log.Info($"ending");
+            //    return;
+            //}
             // ending transition (yellow) finished
             // change step
             int newStepIndex = Steps[CurrentStep].NextStepRefIndex;
@@ -440,8 +459,6 @@ namespace TrafficManager.TrafficLight
               
             FlexibleTrafficLights flexibleLights = slaveSim.FlexibleLight;
             flexibleLights.CurrentStep = newStepIndex;
-
-
 
             flexibleLights.Steps[oldStepIndex].NextStepRefIndex = -1;
             flexibleLights.Steps[newStepIndex].Start(oldStepIndex);
@@ -462,12 +479,12 @@ namespace TrafficManager.TrafficLight
             foreach (ushort slaveNodeId in NodeGroup)
             {
                 TrafficLightSimulation slaveSim = tlsMan.GetNodeSimulation(slaveNodeId);
-                if (slaveSim == null || !slaveSim.IsTimedLight())
+                if (slaveSim == null || !slaveSim.IsFlexibleLight())
                 {
                     //TrafficLightSimulation.RemoveNodeFromSimulation(slaveNodeId, false); // we iterate over NodeGroup!!
                     continue;
                 }
-                slaveSim.TimedLight.Steps[CurrentStep].UpdateLiveLights(noTransition);
+                slaveSim.FlexibleLight.Steps[CurrentStep].UpdateLiveLights(noTransition);
             }
         }       
 
@@ -602,7 +619,7 @@ namespace TrafficManager.TrafficLight
         internal FlexibleTrafficLights MasterLights()
         {
             TrafficLightSimulation masterSim = TrafficLightSimulationManager.Instance.GetNodeSimulation(masterNodeId);
-            if (masterSim == null || !masterSim.IsTimedLight())
+            if (masterSim == null || !masterSim.IsFlexibleLight())
                 return null;
             return masterSim.FlexibleLight;
         }

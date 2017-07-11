@@ -10,6 +10,8 @@ using TrafficManager.Manager;
 using TrafficManager.UI;
 using CSUtil.Commons;
 using TrafficManager.Geometry;
+using ColossalFramework.Plugins;
+
 namespace TrafficManager.API
 {
     public static class APIget
@@ -85,6 +87,7 @@ namespace TrafficManager.API
 
         public static uint getCurrentFrame()
         {
+            
             return Constants.ServiceFactory.SimulationService.CurrentFrameIndex >> 6;
         }
 
@@ -99,8 +102,11 @@ namespace TrafficManager.API
                 stepHappening = true;
             }
 
-            if( Math.Max(0, startFrame + 5 - getCurrentFrame()) == 0)
+            Log.Info($"Current frame comparison value: {startFrame} + 20 - {getCurrentFrame()} = {(startFrame + 20) - getCurrentFrame()}");
+            if ( Math.Max(0, ((int)startFrame + 20) - (int)getCurrentFrame()) == 0)
             {
+                
+
                 stepHappening = false;
                 return (currentStep + 1) % noOfSteps;
             }

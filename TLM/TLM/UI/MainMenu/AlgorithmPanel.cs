@@ -135,11 +135,13 @@ namespace TrafficManager.UI.MainMenu {
 
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
                             if (end == null || end.OutgoingOneWay)
                                 continue;
                             
                             segArray[i2] = end.SegmentId;
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "self : " + end.SegmentId);
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "left segments: " + end.LeftSegments[0]);
                             i2++;
                             
                             
@@ -172,10 +174,14 @@ namespace TrafficManager.UI.MainMenu {
                             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
                             sim.FlexibleLight.AddStep(lsrArray, segArray, end.SegmentId);
                             k++;
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, lsrArray.ToString());
                         }
 
 
                         sim.FlexibleLight.Start();
+
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
+
                     }
 
 
@@ -183,7 +189,6 @@ namespace TrafficManager.UI.MainMenu {
 
             }
             _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
-
         }
     
         private static void clickToggleAllTimedTrafficLights(UIComponent component, UIMouseEventParameter eventParam)

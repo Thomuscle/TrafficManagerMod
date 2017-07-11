@@ -152,6 +152,11 @@ namespace TrafficManager.TrafficLight {
 			return IsTimedLight() && TimedLight.IsStarted();
 		}
 
+        public bool IsFlexibleLightActive()
+        {
+            return IsFlexibleLight() && FlexibleLight.IsStarted();
+        }
+
 		public bool IsSimulationActive() {
 			return IsManualLight() || IsTimedLightActive();
 		}

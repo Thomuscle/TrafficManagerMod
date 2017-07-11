@@ -49,6 +49,10 @@ namespace TrafficManager.Manager {
 						//Flags.applyNodeTrafficLightFlag((ushort)nodeId);
 						nodeSim.TimedLight.SimulationStep();
 					}
+                    if (nodeSim != null && nodeSim.IsFlexibleLightActive())
+                    {
+                        nodeSim.FlexibleLight.SimulationStep();
+                    }
 				} catch (Exception ex) {
 					Log.Warning($"Error occured while simulating traffic light @ node {nodeId}: {ex.ToString()}");
 				}
