@@ -87,7 +87,7 @@ namespace TrafficManager.UI.MainMenu {
 			bool posChanged = (config.MainMenuX != (int)absolutePosition.x || config.MainMenuY != (int)absolutePosition.y);
 
 			if (posChanged) {
-				Log._Debug($"Menu position changed to {absolutePosition.x}|{absolutePosition.y}");
+				//Log._Debug($"Menu position changed to {absolutePosition.x}|{absolutePosition.y}");
 
 				config.MainMenuX = (int)absolutePosition.x;
 				config.MainMenuY = (int)absolutePosition.y;
@@ -106,7 +106,7 @@ namespace TrafficManager.UI.MainMenu {
             bool vehicles;
             bool pedestrians;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
                 var node = netManager.m_nodes.m_buffer[i];
@@ -130,7 +130,7 @@ namespace TrafficManager.UI.MainMenu {
                         NodeGeometry nodeGeometry = NodeGeometry.Get(i);
 
                         ushort[] segArray = new ushort[nodeGeometry.SegmentEndGeometries.Length];
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "length: " + nodeGeometry.SegmentEndGeometries.Length);
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "length: " + nodeGeometry.SegmentEndGeometries.Length);
                         int i2 = 0;
 
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
@@ -140,21 +140,21 @@ namespace TrafficManager.UI.MainMenu {
                                 continue;
                             
                             segArray[i2] = end.SegmentId;
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "self : " + end.SegmentId);
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "left segments: " + end.LeftSegments[0]);
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "self : " + end.SegmentId);
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "left segments: " + end.LeftSegments[0]);
                             i2++;
                             
                             
                         }
 
                         //this doesnt occur, never leaves the above loop
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out of first for loop");
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out of first for loop");
                         int k = 0;
                         //Instead of next foreach statement API Call to figure out possible steps and add each one of those
 
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Number of segments: "+ node.CountSegments());
+                           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Number of segments: "+ node.CountSegments());
                             if (end == null || end.OutgoingOneWay)
                                 continue;
                             ushort[] lsrArray = new ushort[node.CountSegments()*3];
@@ -171,16 +171,16 @@ namespace TrafficManager.UI.MainMenu {
                                 }
                             }
                             //this is not printing
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
                             sim.FlexibleLight.AddStep(lsrArray, segArray, end.SegmentId);
                             k++;
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, lsrArray.ToString());
+                           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, lsrArray.ToString());
                         }
 
 
                         sim.FlexibleLight.Start();
 
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
 
                     }
 

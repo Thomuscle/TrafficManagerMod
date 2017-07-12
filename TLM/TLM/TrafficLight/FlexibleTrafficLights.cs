@@ -40,7 +40,7 @@ namespace TrafficManager.TrafficLight
         private bool testMode = false;
 
         private bool started = false;
-
+        
         /// <summary>
         /// Indicates the total amount and direction of rotation that was applied to this timed traffic light
         /// </summary>
@@ -380,7 +380,7 @@ namespace TrafficManager.TrafficLight
                 return;
             }
 
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Step: " + CurrentStep.ToString());
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Step: " + CurrentStep.ToString());
 
 
             SetLights();
@@ -405,13 +405,13 @@ namespace TrafficManager.TrafficLight
 
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             
-            Log.Info($"outside if <0");
+            //Log.Info($"outside if <0");
             if (Steps[CurrentStep].NextStepRefIndex < 0)            {
-                Log.Info($"inside");
+                // Log.Info($"inside");
                 //TODO logic for determining the next step
                 //int nextStepIndex = (CurrentStep + 1) % NumSteps();
-
-                int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps());
+                Log.Info($"node: {NodeId}");
+                int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId));
 
                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 

@@ -91,23 +91,23 @@ namespace TrafficManager.API
             return Constants.ServiceFactory.SimulationService.CurrentFrameIndex >> 6;
         }
 
-        static bool stepHappening = false;
-        static uint startFrame = 0;
+        //static bool stepHappening = false;
+        //static uint startFrame = 0;
 
-        public static int getNextIndex(int currentStep, int noOfSteps)
+        public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry node)
         {
-            if (!stepHappening)
+            if (!node.StepHappening)
             {
-                startFrame = getCurrentFrame();
-                stepHappening = true;
+                node.StartFrame = getCurrentFrame();
+                node.StepHappening = true;
             }
 
-            Log.Info($"Current frame comparison value: {startFrame} + 20 - {getCurrentFrame()} = {(startFrame + 20) - getCurrentFrame()}");
-            if ( Math.Max(0, ((int)startFrame + 20) - (int)getCurrentFrame()) == 0)
+            Log.Info($"Current frame comparison value: {node.StartFrame} + 20 - {getCurrentFrame()} = {(node.StartFrame + 20) - getCurrentFrame()}");
+            if ( Math.Max(0, ((int)node.StartFrame + 20) - (int)getCurrentFrame()) == 0)
             {
                 
 
-                stepHappening = false;
+                node.StepHappening = false;
                 return (currentStep + 1) % noOfSteps;
             }
             else

@@ -34,8 +34,16 @@ namespace TrafficManager.Geometry {
 		public ushort NodeId {
 			get; private set;
 		} = 0;
+        public uint StartFrame
+        {
+            get;  set;
+        } = 0;
 
-		public bool IsSimpleJunction {
+        public bool StepHappening
+        {
+            get; set;
+        } = false;
+        public bool IsSimpleJunction {
 			get; private set;
 		} = false;
 
