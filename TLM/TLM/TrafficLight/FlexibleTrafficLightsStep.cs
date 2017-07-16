@@ -89,16 +89,26 @@ namespace TrafficManager.TrafficLight
         }
 
 
-        public FlexibleTrafficLightsStep(FlexibleTrafficLights flexibleNode, ushort segID, ushort[] lightValues, ushort[] segIDs, bool makeRed = false)
+        public FlexibleTrafficLightsStep(FlexibleTrafficLights flexibleNode, ushort[] lightValues, ushort[] segIDs, bool makeRed = false)
         {
-           
+
+            string s = "";
+            
+            for (int q = 0; q < segIDs.Length; q++)
+            {
+                s = s + " " + segIDs[q].ToString();
+            }
+            Log.Info($"segIDs array: {s}");
+
+
+            Log.Info($"1");
             this.flexibleNode = flexibleNode;
 
             endTransitionStart = null;
             stepDone = false;
 
             NodeGeometry nodeGeometry = NodeGeometry.Get(flexibleNode.NodeId);
-
+            Log.Info($"2");
             foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
 
             {
@@ -108,57 +118,72 @@ namespace TrafficManager.TrafficLight
                     continue;
                 }
                 CustomSegmentLights clonedLights = (CustomSegmentLights)CustomSegmentLightsManager.Instance.GetOrLiveSegmentLights(end.SegmentId, end.StartNode).Clone();
-
+                Log.Info($"3");
                 CustomSegmentLights.Add(end.SegmentId, clonedLights);
-
-                short index = -1;
-                short i = -1;
+                Log.Info($"4");
+                short index = 0;
+                short i = 0;
 
                 foreach (ushort segIdentifier in segIDs)
                 {
-                    i++;
-                    if (segIdentifier == end.SegmentId)
+                    Log.Info($"{end.OutgoingOneWay}");
+
+                    if (segIdentifier != 0 && !SegmentEndGeometry.Get(segIdentifier, false).OutgoingOneWay)
                     {
-                        index = i;
+                        
+                        if (segIdentifier == end.SegmentId)
+                        {
+                            index = i;
+                        }
+                        i++;
                     }
                 }
-
-                int leftIndex = index * 3;
+                Log.Info($"5");
+                int rightIndex = index * 3;
                 int straightIndex = index * 3 + 1;
-                int rightIndex = index * 3 + 2;
-                
-                foreach (CustomSegmentLight light in CustomSegmentLights[end.SegmentId].CustomLights.Values)
-                {
-                    if(lightValues[leftIndex] == 1)
-                    {
-                        light.LightLeft = RoadBaseAI.TrafficLightState.Green;
-                    }
-                    else
-                    {
-                        light.LightLeft = RoadBaseAI.TrafficLightState.Red;
-                    }
+                int leftIndex = index * 3 + 2;
+                Log.Info($"right index: {rightIndex}");
+                Log.Info($"straight index: {straightIndex}");
+                Log.Info($"left index: {leftIndex}");
+                int ps = 0;
+                CustomSegmentLight light = CustomSegmentLights[end.SegmentId].CustomLights[0];
+                //foreach (CustomSegmentLight light in CustomSegmentLights[end.SegmentId].CustomLights.Values)
 
-                    if (lightValues[straightIndex] == 1)
+                //{
+                    Log.Info($"{ps}");
+                    ps++;
+                    if (light != null)
                     {
-                        light.LightMain = RoadBaseAI.TrafficLightState.Green;
-                    }
-                    else
-                    {
-                        light.LightMain = RoadBaseAI.TrafficLightState.Red;
-                    }
+                        if (lightValues[leftIndex] == 1)
+                        {
+                            light.LightLeft = RoadBaseAI.TrafficLightState.Green;
+                        }
+                        else
+                        {
+                            light.LightLeft = RoadBaseAI.TrafficLightState.Red;
+                        }
 
-                    if (lightValues[rightIndex] == 1)
-                    {
-                        light.LightRight = RoadBaseAI.TrafficLightState.Green;
-                    }
-                    else
-                    {
-                        light.LightRight = RoadBaseAI.TrafficLightState.Red;
-                    }
+                        if (lightValues[straightIndex] == 1)
+                        {
+                            light.LightMain = RoadBaseAI.TrafficLightState.Green;
+                        }
+                        else
+                        {
+                            light.LightMain = RoadBaseAI.TrafficLightState.Red;
+                        }
 
+                        if (lightValues[rightIndex] == 1)
+                        {
+                            light.LightRight = RoadBaseAI.TrafficLightState.Green;
+                        }
+                        else
+                        {
+                            light.LightRight = RoadBaseAI.TrafficLightState.Red;
+                        }
+                    //}
                 }
-                
-                
+
+                Log.Info($"6");
                 AddSegment(end.SegmentId, end.StartNode, makeRed, true);
             }
 
@@ -497,13 +522,22 @@ namespace TrafficManager.TrafficLight
 
         internal void AddSegment(ushort segmentId, bool startNode, bool makeRed, bool roundRobin)
         {
+            Log.Info($"X");
             CustomSegmentLights clonedLights = CustomSegmentLightsManager.Instance.GetOrLiveSegmentLights(segmentId, startNode).Clone(this);
 
             if (makeRed)
+            {
+                Log.Info($"Y");
                 CustomSegmentLights[segmentId].MakeRed();
+            }
             else
+            {
+                Log.Info($"Z");
                 CustomSegmentLights[segmentId].MakeRedOrGreen();
+            }
+            Log.Info($"Zz");
             CustomSegmentLightsManager.Instance.ApplyLightModes(segmentId, startNode, clonedLights);
+            Log.Info($"Zzz");
         }
 
 

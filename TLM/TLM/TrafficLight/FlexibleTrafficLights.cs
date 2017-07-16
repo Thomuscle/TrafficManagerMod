@@ -178,11 +178,13 @@ namespace TrafficManager.TrafficLight
         }
 
         //this is our one
-        public FlexibleTrafficLightsStep AddStep(ushort[] lightValues, ushort[] segIDs, ushort segID, bool makeRed = false)
+        public FlexibleTrafficLightsStep AddStep(ushort[] lightValues, ushort[] segIDs, bool makeRed = false)
         {
             // TODO [version 1.9] currently, this method must be called for each node in the node group individually
+            Log.Info($"just before the new flexible step");
+            FlexibleTrafficLightsStep step = new FlexibleTrafficLightsStep(this, lightValues, segIDs, makeRed);
+            Log.Info($"just before the add");
 
-            FlexibleTrafficLightsStep step = new FlexibleTrafficLightsStep(this, segID, lightValues, segIDs, makeRed);
             Steps.Add(step);
             return step;
         }

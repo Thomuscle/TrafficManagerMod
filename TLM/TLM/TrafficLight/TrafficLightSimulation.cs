@@ -111,6 +111,7 @@ namespace TrafficManager.TrafficLight {
                 DestroyManualTrafficLight();
 
             FlexibleLight = new FlexibleTrafficLights(NodeId, nodeGroup);
+            CustomSegmentLightsManager.Instance.AddNodeLights(NodeId);
         }
 
         //Destroys FlexibleLight
@@ -124,6 +125,7 @@ namespace TrafficManager.TrafficLight {
             if (flexibleLight != null)
             {
                 flexibleLight.Destroy();
+                CustomSegmentLightsManager.Instance.RemoveNodeLights(NodeId);
             }
         }
 
