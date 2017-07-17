@@ -122,7 +122,12 @@ namespace TrafficManager.API
         {
             int numSegs;
             segArray = getOrderedSegments(node, out numSegs);
-
+            string s = "";
+            for (int q = 0; q < segArray.Length; q++)
+            {
+                s = s + " " + segArray[q];
+            }
+            Log.Info($"SEGARRAY: {s}");
             List<Phase> phaseList = new List<Phase>();
 
             phaseList = phaseBuilder(segArray, numSegs);
@@ -134,16 +139,16 @@ namespace TrafficManager.API
         private static bool[] getTurnPossibilities(ushort[] segArray, int currentIndex)
         {
             bool[] turnPossibilities = new bool[3];
-
+            int cycleIndex = currentIndex;
             for (int j = 0; j < 3; j++)
             {
-                currentIndex++;
-                if (currentIndex > 3)
+                cycleIndex++;
+                if (cycleIndex > 3)
                 {
-                    currentIndex = 0;
+                    cycleIndex = 0;
                 }
 
-                if (segArray[currentIndex] != 0 && !SegmentEndGeometry.Get(segArray[currentIndex], false).IncomingOneWay)
+                if (segArray[cycleIndex] != 0 && !SegmentEndGeometry.Get(segArray[cycleIndex], true).IncomingOneWay)
                 {
                     turnPossibilities[j] = true;
                 }
@@ -152,7 +157,12 @@ namespace TrafficManager.API
                     turnPossibilities[j] = false;
                 }
             }
-
+            string s = "";
+            for (int q = 0; q < turnPossibilities.Length; q++)
+            {
+                s = s + " " + turnPossibilities[q];
+            }
+            Log.Info($"TURN POSIBILITIES FOR {segArray[currentIndex]}: {s}");
             return turnPossibilities;
         }
 
@@ -163,30 +173,32 @@ namespace TrafficManager.API
             {
                 ushort currentSeg = segArray[i];
 
-                if (currentSeg == 0)
+                if (currentSeg.Equals(0))
                 {
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
                 {
                     numSegs--;
+                    Log.Info($"CURRENT SEG IS OUTGOING ONEWAY: {currentSeg}");
                     continue;
                 }
             }
 
-
+            Log.Info($"NO. OF SEGMENTS AFTER CONSIDERING OUTGOING ONEWAYS:  {numSegs}");
             for (int i = 0; i < 4; i++)
             {
                 ushort currentSeg = segArray[i];
 
-                if (currentSeg == 0)
+                if (currentSeg.Equals(0))
                 {
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
                 {
+                    Log.Info($"CURRENT SEG IS OUTGOING ONEWAY: {currentSeg}");
                     continue;
                 }
 
@@ -281,7 +293,7 @@ namespace TrafficManager.API
                 tempSegArray[3] = 0;
                 Log.Info($"doesnt have left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
             }
-
+            Log.Info($"NO. OF SEGMENTS: {numSegs}");
             return tempSegArray;
         }
 
@@ -295,10 +307,10 @@ namespace TrafficManager.API
             }
             Log.Info($"initial conflict array: {s} ID: {segArray[initialSegmentIndex]}");
             bool noMoreValid = true;
-            for (int i = 0; i<3; i++)
+            for (int i = 0; i<4; i++)
             {
                 ushort currentSeg = segArray[i];
-                if(currentSeg == 0)
+                if (currentSeg.Equals(0))
                 {
                     continue;
                 }
@@ -317,7 +329,7 @@ namespace TrafficManager.API
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
                 {
                     continue;
                 }
@@ -444,7 +456,7 @@ namespace TrafficManager.API
                             for (int k = 0; k < 4; k++)
                             {
                                 ushort tempSeg = segArray[i];
-                                if (tempSeg == 0)
+                                if (tempSeg.Equals(0)|| SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
                                 {
                                     continue;
                                 }
@@ -469,7 +481,8 @@ namespace TrafficManager.API
                             phases.Add(copyPhase);
                             
                             segmentsSeen.RemoveAt(segmentsSeen.Count - 1);
-                            return;
+                            depth--;
+                            continue;
                         }
                         else
                         {
@@ -483,19 +496,19 @@ namespace TrafficManager.API
             {
                 Log.Info($"no more valid, ID: {segArray[initialSegmentIndex]}");
 
-                int l = depth-1;
+                int l = segmentsSeen.Count;
                 string s4 = "";
                 for (int q = 0; q < segArray.Length; q++)
                 {
                     s4 = s4 + " " + segArray[q];
                 }
-                Log.Info($"valid rotated recursive conflict array: {s4} ID: {segArray[initialSegmentIndex]}");
+                Log.Info($"{s4} ID: {segArray[initialSegmentIndex]}");
                 for (int k = 0; k < 4; k++)
                 {
                     Log.Info($"L: {l}");
 
                     ushort tempSeg = segArray[k];
-                    if (tempSeg == 0 || SegmentEndGeometry.Get(tempSeg, false).OutgoingOneWay)
+                    if (tempSeg.Equals(0) || SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
                     {
                         Log.Info($"skipped");
                         continue;

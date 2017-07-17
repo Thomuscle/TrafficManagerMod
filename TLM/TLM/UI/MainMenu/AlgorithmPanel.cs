@@ -117,7 +117,7 @@ namespace TrafficManager.UI.MainMenu {
 
                     NodeGeometry nodeGeometry = NodeGeometry.Get(i);
 
-                    APIget.getOrderedSegments(nodeGeometry, out int numSegs);
+                    //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
                 }
 
             }

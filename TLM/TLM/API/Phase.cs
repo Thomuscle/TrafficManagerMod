@@ -37,6 +37,7 @@ namespace TrafficManager.API
         {
             segments[index] = seg;
             directions[index] = dir;
+            Log.Info($"ADDING SEGMENT AND DIRECTION TO PHASE: {seg} - {dir}");
         }
 
         public void copy(Phase phase, int numSegs)
@@ -58,33 +59,39 @@ namespace TrafficManager.API
             {
                 ushort seg = segments[i];
                 Directions dir = directions[i];
-
-                for (int j = 0; j < numSegs; j++)
+                int k = 0;
+                for (int j = 0; j < 4; j++)
                 {
-                    if(seg == segArray[j])
+                    if(seg.Equals(segArray[j]))
                     {
                         switch (dir)
                         {
                             case Directions.None:
-                                rslArray[j * 3] = 0;
-                                rslArray[j * 3 + 1] = 0;
-                                rslArray[j * 3 + 2] = 0;
+                                rslArray[k * 3] = 0;
+                                rslArray[k * 3 + 1] = 0;
+                                rslArray[k * 3 + 2] = 0;
                                 break;
                             case Directions.Right:
-                                rslArray[j * 3] = 1;
-                                rslArray[j * 3 + 1] = 0;
-                                rslArray[j * 3 + 2] = 0;
+                                rslArray[k * 3] = 1;
+                                rslArray[k * 3 + 1] = 0;
+                                rslArray[k * 3 + 2] = 0;
                                 break;
                             case Directions.StraightRight:
-                                rslArray[j * 3] = 1;
-                                rslArray[j * 3 + 1] = 1;
-                                rslArray[j * 3 + 2] = 0;
+                                rslArray[k * 3] = 1;
+                                rslArray[k * 3 + 1] = 1;
+                                rslArray[k * 3 + 2] = 0;
                                 break;
                             case Directions.All:
-                                rslArray[j * 3] = 1;
-                                rslArray[j * 3 + 1] = 1;
-                                rslArray[j * 3 + 2] = 1;
+                                rslArray[k * 3] = 1;
+                                rslArray[k * 3 + 1] = 1;
+                                rslArray[k * 3 + 2] = 1;
                                 break;
+                        }
+                    }else
+                    {
+                        if (!(segArray[j].Equals(0) || Geometry.SegmentEndGeometry.Get(segArray[j], true).OutgoingOneWay))
+                        {
+                            k++;
                         }
                     }
                 }
