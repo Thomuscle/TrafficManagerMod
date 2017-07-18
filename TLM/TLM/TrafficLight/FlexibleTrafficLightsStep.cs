@@ -167,7 +167,7 @@ namespace TrafficManager.TrafficLight
                 foreach (CustomSegmentLight light in CustomSegmentLights[end.SegmentId].CustomLights.Values)
 
                 {
-                    Log.Info($"{ps}");
+                    //Log.Info($"{ps}");
                     ps++;
                     if (light != null)
                     {
@@ -200,7 +200,7 @@ namespace TrafficManager.TrafficLight
                     }
                 }
 
-                Log.Info($"6");
+                //Log.Info($"6");
                 AddSegment(end.SegmentId, end.StartNode, makeRed, true);
             }
 
