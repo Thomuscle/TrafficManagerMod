@@ -11,6 +11,7 @@ using TrafficManager.TrafficLight;
 using UnityEngine;
 using TrafficManager.Manager;
 using TrafficManager.Traffic;
+using ColossalFramework.Plugins;
 
 namespace TrafficManager.UI.SubTools {
 	public class ManualTrafficLightsTool : SubTool {
@@ -240,9 +241,14 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 1;
 
 			if (!MainTool.CheckClicked())
-				return true;
+            {
+                
 
-			segmentLights.ManualPedestrianMode = !segmentLights.ManualPedestrianMode;
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "A");
+
+            segmentLights.ManualPedestrianMode = !segmentLights.ManualPedestrianMode;
 			return true;
 		}
 
@@ -256,9 +262,13 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 2;
 
 			if (!MainTool.CheckClicked())
-				return true;
+            {
+               
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "B");
 
-			if (!segmentLights.ManualPedestrianMode) {
+            if (!segmentLights.ManualPedestrianMode) {
 				segmentLights.ManualPedestrianMode = true;
 			} else {
 				segmentLights.ChangeLightPedestrian();
@@ -275,8 +285,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = -1;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ToggleMode();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "C");
+            segmentDict.ToggleMode();
 			return true;
 		}
 
@@ -330,8 +344,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 3;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeMainLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "D");
+            segmentDict.ChangeMainLight();
 			return true;
 		}
 
@@ -361,7 +379,8 @@ namespace TrafficManager.UI.SubTools {
 					hoveredSegment = true;
 
 					if (MainTool.CheckClicked()) {
-						segmentDict.ChangeLeftLight();
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "E");
+                        segmentDict.ChangeLeftLight();
 					}
 				}
 			}
@@ -408,8 +427,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 4;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeMainLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "F");
+            segmentDict.ChangeMainLight();
 			return true;
 		}
 
@@ -467,7 +490,8 @@ namespace TrafficManager.UI.SubTools {
 				hoveredSegment = true;
 
 				if (MainTool.CheckClicked()) {
-					segmentDict.ChangeMainLight();
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "G");
+                    segmentDict.ChangeMainLight();
 				}
 			}
 
@@ -499,8 +523,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 4;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeRightLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
+            segmentDict.ChangeRightLight();
 			return true;
 		}
 
@@ -536,8 +564,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 3;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeLeftLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
+            segmentDict.ChangeLeftLight();
 
 			if (!hasForwardSegment) {
 				segmentDict.ChangeMainLight();
@@ -575,8 +607,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 4;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeMainLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "I");
+            segmentDict.ChangeMainLight();
 			return true;
 		}
 
@@ -604,8 +640,12 @@ namespace TrafficManager.UI.SubTools {
 			_hoveredButton[1] = 5;
 
 			if (!MainTool.CheckClicked())
-				return true;
-			segmentDict.ChangeRightLight();
+            {
+                
+                return true;
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "J");
+            segmentDict.ChangeRightLight();
 			return true;
 		}
 

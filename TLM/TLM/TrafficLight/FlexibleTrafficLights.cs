@@ -412,7 +412,7 @@ namespace TrafficManager.TrafficLight
                 // Log.Info($"inside");
                 //TODO logic for determining the next step
                 //int nextStepIndex = (CurrentStep + 1) % NumSteps();
-                Log.Info($"node: {NodeId}");
+                //Log.Info($"node: {NodeId}");
                 int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId));
 
                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());

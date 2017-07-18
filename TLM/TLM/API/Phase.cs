@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TrafficManager.Geometry;
 
 namespace TrafficManager.API
 {
@@ -51,19 +52,23 @@ namespace TrafficManager.API
             }
         }
 
-        public ushort[] getRslArray(ushort[] segArray)
+        public ushort[] getRslArray(ushort[] segArray, NodeGeometry node)
         {
+            
             ushort[] rslArray = new ushort[numSegs * 3];
-
+            
             for (int i = 0; i < numSegs; i++)
             {
                 ushort seg = segments[i];
+                Log.Info($"segment: {seg}");
+
                 Directions dir = directions[i];
                 int k = 0;
                 for (int j = 0; j < 4; j++)
                 {
                     if(seg.Equals(segArray[j]))
                     {
+                        Log.Info($"K = {k} for {seg}");
                         switch (dir)
                         {
                             case Directions.None:
@@ -89,10 +94,28 @@ namespace TrafficManager.API
                         }
                     }else
                     {
-                        if (!(segArray[j].Equals(0) || Geometry.SegmentEndGeometry.Get(segArray[j], true).OutgoingOneWay))
+                        if (!(segArray[j].Equals(0)))
                         {
-                            k++;
+
+                            if (Geometry.SegmentEndGeometry.Get(segArray[j], true).NodeId().Equals(node.NodeId))
+                            {
+                                if (!Geometry.SegmentEndGeometry.Get(segArray[j], true).OutgoingOneWay)
+                                {
+                                    k++;
+                                }
+                            }
+                            else
+                            {
+                                if (!Geometry.SegmentEndGeometry.Get(segArray[j], false).OutgoingOneWay)
+                                {
+                                    k++;
+                                }
+                            }
                         }
+                        
+                        
+
+                        
                     }
                 }
             }

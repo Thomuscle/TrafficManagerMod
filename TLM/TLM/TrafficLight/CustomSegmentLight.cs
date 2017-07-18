@@ -66,6 +66,8 @@ namespace TrafficManager.TrafficLight {
 			get { return leftLight; }
             set
             {
+                Log.Info($"lightleft v: {value} sID: {SegmentId}");
+
                 if (leftLight == value)
                     return;
 
@@ -78,6 +80,7 @@ namespace TrafficManager.TrafficLight {
 			get { return mainLight; }
             set
             {
+                Log.Info($"lightmain v: {value} sID: {SegmentId}");
                 if (mainLight == value)
                     return;
 
@@ -89,6 +92,7 @@ namespace TrafficManager.TrafficLight {
 			get { return rightLight; }
             set
             {
+                Log.Info($"lightright v: {value} sID: {SegmentId}");
                 if (rightLight == value)
                     return;
 
@@ -239,7 +243,19 @@ namespace TrafficManager.TrafficLight {
 			UpdateVisuals();
 		}
 
-		public bool IsAnyGreen() {
+        public void ChangeLight(RoadBaseAI.TrafficLightState rightState, RoadBaseAI.TrafficLightState mainState, RoadBaseAI.TrafficLightState leftState)
+        {
+            
+
+            //LightRight = invertedLight;
+            SetStates(null, null, rightState);
+            SetStates(mainState, null, null);
+            SetStates(null, leftState, null);
+
+            UpdateVisuals();
+        }
+
+        public bool IsAnyGreen() {
 			return LightMain == RoadBaseAI.TrafficLightState.Green ||
 				LightLeft == RoadBaseAI.TrafficLightState.Green ||
 				LightRight == RoadBaseAI.TrafficLightState.Green;
@@ -403,10 +419,10 @@ namespace TrafficManager.TrafficLight {
 			if (rightLight != null)
 				this.rightLight = (RoadBaseAI.TrafficLightState)rightLight;
 
-#if DEBUGTTL
-			if (GlobalConfig.Instance.DebugSwitches[7] && GlobalConfig.Instance.TTLDebugNodeId == NodeId)
-				Log._Debug($"CustomSegmentLight.SetStates({mainLight}, {leftLight}, {rightLight}, {calcAutoPedLight}) for segment {SegmentId} @ {NodeId}: {this.mainLight} {this.leftLight} {this.rightLight}");
-#endif
+
+			
+			//Log.Info($"CustomSegmentLight.SetStates({mainLight}, {leftLight}, {rightLight}, {calcAutoPedLight}) for segment {SegmentId} @ {NodeId}: {this.mainLight} {this.leftLight} {this.rightLight}");
+
 
 			lights.OnChange(calcAutoPedLight);
 		}

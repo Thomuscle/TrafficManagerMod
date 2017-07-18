@@ -103,7 +103,7 @@ namespace TrafficManager.API
                 node.StepHappening = true;
             }
 
-            Log.Info($"Current frame comparison value: {node.StartFrame} + 5 - {getCurrentFrame()} = {(node.StartFrame + 20) - getCurrentFrame()}");
+            //Log.Info($"Current frame comparison value: {node.StartFrame} + 5 - {getCurrentFrame()} = {(node.StartFrame + 20) - getCurrentFrame()}");
             if (Math.Max(0, ((int)node.StartFrame + 5) - (int)getCurrentFrame()) == 0)
             {
 
@@ -130,13 +130,13 @@ namespace TrafficManager.API
             Log.Info($"SEGARRAY: {s}");
             List<Phase> phaseList = new List<Phase>();
 
-            phaseList = phaseBuilder(segArray, numSegs);
+            phaseList = phaseBuilder(segArray, numSegs, node);
 
             return phaseList;
 
         }
 
-        private static bool[] getTurnPossibilities(ushort[] segArray, int currentIndex)
+        private static bool[] getTurnPossibilities(ushort[] segArray, int currentIndex, NodeGeometry node)
         {
             bool[] turnPossibilities = new bool[3];
             int cycleIndex = currentIndex;
@@ -148,9 +148,31 @@ namespace TrafficManager.API
                     cycleIndex = 0;
                 }
 
-                if (segArray[cycleIndex] != 0 && !SegmentEndGeometry.Get(segArray[cycleIndex], true).IncomingOneWay)
+                if (segArray[cycleIndex] != 0)
                 {
-                    turnPossibilities[j] = true;
+                    if (SegmentEndGeometry.Get(segArray[cycleIndex], true).NodeId().Equals(node.NodeId))
+                    {
+                        if (!SegmentEndGeometry.Get(segArray[cycleIndex], true).IncomingOneWay)
+                        {
+                            turnPossibilities[j] = true;
+                        }
+                        else
+                        {
+                            turnPossibilities[j] = false;
+                        }
+                    }
+                    else
+                    {
+                        if (!SegmentEndGeometry.Get(segArray[cycleIndex], false).IncomingOneWay)
+                        {
+                            turnPossibilities[j] = true;
+                        }
+                        else
+                        {
+                            turnPossibilities[j] = false;
+                        }
+                    }
+                    
                 }
                 else
                 {
@@ -166,7 +188,7 @@ namespace TrafficManager.API
             return turnPossibilities;
         }
 
-        public static List<Phase> phaseBuilder(ushort[] segArray, int numSegs)
+        public static List<Phase> phaseBuilder(ushort[] segArray, int numSegs, NodeGeometry node)
         {
             List<Phase> phaseList = new List<Phase>();
             for (int i = 0; i < 4; i++)
@@ -178,11 +200,23 @@ namespace TrafficManager.API
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                if(SegmentEndGeometry.Get(currentSeg, true).NodeId().Equals(node.NodeId))
                 {
-                    numSegs--;
-                    Log.Info($"CURRENT SEG IS OUTGOING ONEWAY: {currentSeg}");
-                    continue;
+                    if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                    {
+                        Log.Info($" OUTGOING ONEWAY w TRUE? : {SegmentEndGeometry.Get(currentSeg, true).ToString()}");
+                        numSegs--;
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                    {
+                        Log.Info($" OUTGOING ONEWAY w FALSE? : {SegmentEndGeometry.Get(currentSeg, false).ToString()}");
+                        numSegs--;
+                        continue;
+                    }
                 }
             }
 
@@ -196,13 +230,24 @@ namespace TrafficManager.API
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                if (SegmentEndGeometry.Get(currentSeg, true).NodeId().Equals(node.NodeId))
                 {
-                    Log.Info($"CURRENT SEG IS OUTGOING ONEWAY: {currentSeg}");
-                    continue;
+                    if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                    {
+                        Log.Info($"!!!! OUTGOING ONEWAY w TRUE? : {SegmentEndGeometry.Get(currentSeg, true).ToString()}");
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                    {
+                        Log.Info($"!!!! OUTGOING ONEWAY w FALSE? : {SegmentEndGeometry.Get(currentSeg, false).ToString()}");
+                        continue;
+                    }
                 }
 
-                bool[] turnPossibilities = getTurnPossibilities(segArray, i);
+                bool[] turnPossibilities = getTurnPossibilities(segArray, i, node);
 
 
 
@@ -243,7 +288,7 @@ namespace TrafficManager.API
                     }
                     Log.Info($"initial conflict array before recursive function is called: {s2}");
                     
-                    recursiveBuilder(1, segsSeen, phase, conflictArray,segArray,i, numSegs, phaseList);
+                    recursiveBuilder(1, segsSeen, phase, conflictArray,segArray,i, numSegs, phaseList, node);
                 }
             }
 
@@ -298,7 +343,7 @@ namespace TrafficManager.API
         }
 
 
-        public static void recursiveBuilder(int depth, ArrayList segmentsSeen, Phase phase, bool[] conflictArray, ushort[] segArray, int initialSegmentIndex, int numSegs, List<Phase> phases)
+        public static void recursiveBuilder(int depth, ArrayList segmentsSeen, Phase phase, bool[] conflictArray, ushort[] segArray, int initialSegmentIndex, int numSegs, List<Phase> phases, NodeGeometry node)
         {
             string s = "";
             for (int q = 0; q < conflictArray.Length; q++)
@@ -329,12 +374,22 @@ namespace TrafficManager.API
                     continue;
                 }
 
-                if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                if (SegmentEndGeometry.Get(currentSeg, true).NodeId().Equals(node.NodeId))
                 {
-                    continue;
+                    if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
+                    {
+                        continue;
+                    }
                 }
 
-                bool[] turnPossibilities = getTurnPossibilities(segArray, i);
+                bool[] turnPossibilities = getTurnPossibilities(segArray, i, node);
 
                 for (int j=0; j<3; j++)
                 {
@@ -455,16 +510,34 @@ namespace TrafficManager.API
                             int l = depth;
                             for (int k = 0; k < 4; k++)
                             {
-                                ushort tempSeg = segArray[i];
-                                if (tempSeg.Equals(0)|| SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
+                                ushort tempSeg = segArray[k];
+                                if (tempSeg.Equals(0))
                                 {
                                     continue;
+                                }
+                                if (SegmentEndGeometry.Get(tempSeg, true).NodeId().Equals(node.NodeId))
+                                {
+                                    if (SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
+                                    {
+                                        Log.Info($"outgoing true: {tempSeg}");
+
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    if (SegmentEndGeometry.Get(tempSeg, false).OutgoingOneWay)
+                                    {
+                                        Log.Info($"outgoing false: {tempSeg} ");
+                                        continue;
+                                    }
                                 }
                                 bool isSeenTemp = false;
                                 foreach (object o in segmentsSeen)
                                 {
-                                    if (i == (int)o)
+                                    if (k == (int)o)
                                     {
+                                        Log.Info($"is seen: {tempSeg} ");
                                         isSeenTemp = true;
                                         break;
                                     }
@@ -486,8 +559,9 @@ namespace TrafficManager.API
                         }
                         else
                         {
-                            recursiveBuilder(depth, segmentsSeen, phase, newConflictArray, segArray, initialSegmentIndex, numSegs, phases);
+                            recursiveBuilder(depth, segmentsSeen, phase, newConflictArray, segArray, initialSegmentIndex, numSegs, phases, node);
                             segmentsSeen.RemoveAt(segmentsSeen.Count - 1);
+                            depth--;
                         }
                     }
                 }
@@ -508,12 +582,28 @@ namespace TrafficManager.API
                     Log.Info($"L: {l}");
 
                     ushort tempSeg = segArray[k];
-                    if (tempSeg.Equals(0) || SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
+                    if (tempSeg.Equals(0))
                     {
                         Log.Info($"skipped");
                         continue;
                     }
-                   
+                    if (SegmentEndGeometry.Get(tempSeg, true).NodeId().Equals(node.NodeId))
+                    {
+                        if (SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
+                        {
+                            Log.Info($"skipped");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (SegmentEndGeometry.Get(tempSeg, false).OutgoingOneWay)
+                        {
+                            Log.Info($"skipped");
+                            continue;
+                        }
+                    }
+
                     bool isSeenTemp = false;
                     foreach (object o in segmentsSeen)
                     {

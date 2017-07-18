@@ -160,7 +160,7 @@ namespace TrafficManager.TrafficLight {
         }
 
 		public bool IsSimulationActive() {
-			return IsManualLight() || IsTimedLightActive();
+			return IsManualLight() || IsTimedLightActive() || IsFlexibleLightActive();
 		}
 
         //Needs updating for FlexibleTrafficLights

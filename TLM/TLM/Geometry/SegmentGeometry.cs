@@ -325,15 +325,20 @@ namespace TrafficManager.Geometry {
 			if (! IsValid()) {
 				return null;
 			}
-
-			if (startNode) {
+            
+            
+            if (startNode) {
 				if (StartNodeGeometry != null && StartNodeGeometry.IsValid()) {
-					return StartNodeGeometry;
+                    //Log.Info($" StartNodeGeometry: {StartNodeGeometry.NodeId()}");
+                    return StartNodeGeometry;
 				}
 			} else if (EndNodeGeometry != null && EndNodeGeometry.IsValid()) {
-				return EndNodeGeometry;
+                //Log.Info($" EndNodeGeometry: {EndNodeGeometry.NodeId()}");
+                return EndNodeGeometry;
 			}
-			return null;
+            //Log.Info($" Returned NULL EndNodeGeometry: {EndNodeGeometry.NodeId()}");
+            //Log.Info($" Returned NULL StartNodeGeometry: {StartNodeGeometry.NodeId()}");
+            return null;
 		}
 
 		public SegmentEndGeometry GetEnd(ushort nodeId) {

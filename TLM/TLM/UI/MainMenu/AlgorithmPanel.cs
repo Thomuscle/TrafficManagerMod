@@ -127,7 +127,7 @@ namespace TrafficManager.UI.MainMenu {
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            //CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
+            CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
             RoadBaseAI.TrafficLightState vLightState;
             RoadBaseAI.TrafficLightState pLightState;
             bool vehicles;
@@ -136,7 +136,7 @@ namespace TrafficManager.UI.MainMenu {
             // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
-                Log.Info($"AAAA");
+                
                 var node = netManager.m_nodes.m_buffer[i];
 
                 var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
@@ -168,7 +168,7 @@ namespace TrafficManager.UI.MainMenu {
                         foreach (Phase phase in phases)
                         {
                             string s = "";
-                            ushort[] rslArray = phase.getRslArray(segArray);
+                            ushort[] rslArray = phase.getRslArray(segArray, nodeGeometry);
                             for (int q = 0; q < rslArray.Length; q++)
                             {
                                 s = s + rslArray[q];
@@ -177,18 +177,28 @@ namespace TrafficManager.UI.MainMenu {
                             sim.FlexibleLight.AddStep(rslArray, segArray);
                             Log.Info($"step added");
                         }
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+                            var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode);
+                            Log.Info($"segment lights: {segmentLights.ToString()}");
+                            foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
+                            {
+                                CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
+                                segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
+                                //if (segmentlight.segmentid.equals(28062))
+                                //{
+                                //    log.info($"here");
+                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
+                                //}
+                                sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
+                            }
 
+                        }
                         sim.FlexibleLight.Start();
                         Log.Info($"started");
-                        //foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
-                        //{
-                        //    if (end == null || end.OutgoingOneWay)
-                        //        continue;
-                        //    var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode, false);
-                        //    Log.Info($"segment lights: {segmentLights.ToString()}");
-                        //    CustomSegmentLight segmentLight = segmentLights.GetCustomLight(Traffic.ExtVehicleType.RoadVehicle);
-                        //    segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
-                        //}
+                        
 
                         //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
 

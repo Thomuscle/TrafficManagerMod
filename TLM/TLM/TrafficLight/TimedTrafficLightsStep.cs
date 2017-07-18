@@ -418,14 +418,17 @@ namespace TrafficManager.TrafficLight {
 #endif
 
 						liveSegmentLight.currentMode = curStepSegmentLight.CurrentMode;
-						/*curStepSegmentLight.EnsureModeLights();
+                        /*curStepSegmentLight.EnsureModeLights();
 						prevStepSegmentLight.EnsureModeLights();
 						nextStepSegmentLight.EnsureModeLights();*/
-
-						RoadBaseAI.TrafficLightState mainLight = calcLightState(prevStepSegmentLight.LightMain, curStepSegmentLight.LightMain, nextStepSegmentLight.LightMain, atStartTransition, atEndTransition);
+                        Log.Info($" mode: {liveSegmentLight.currentMode} for {liveSegmentLight.SegmentId} ");
+                        RoadBaseAI.TrafficLightState mainLight = calcLightState(prevStepSegmentLight.LightMain, curStepSegmentLight.LightMain, nextStepSegmentLight.LightMain, atStartTransition, atEndTransition);
 						RoadBaseAI.TrafficLightState leftLight = calcLightState(prevStepSegmentLight.LightLeft, curStepSegmentLight.LightLeft, nextStepSegmentLight.LightLeft, atStartTransition, atEndTransition);
 						RoadBaseAI.TrafficLightState rightLight = calcLightState(prevStepSegmentLight.LightRight, curStepSegmentLight.LightRight, nextStepSegmentLight.LightRight, atStartTransition, atEndTransition);
-						liveSegmentLight.SetStates(mainLight, leftLight, rightLight, false);
+                        Log.Info($" main: {mainLight} for {liveSegmentLight.SegmentId} ");
+                        Log.Info($" left: {leftLight} for {liveSegmentLight.SegmentId}");
+                        Log.Info($" right: {rightLight} for {liveSegmentLight.SegmentId}");
+                        liveSegmentLight.SetStates(mainLight, leftLight, rightLight, false);
 
 #if DEBUGTTL
 						if (GlobalConfig.Instance.DebugSwitches[7] && GlobalConfig.Instance.TTLDebugNodeId == timedNode.NodeId)
