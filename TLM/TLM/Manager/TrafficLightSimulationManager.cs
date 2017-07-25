@@ -136,16 +136,32 @@ namespace TrafficManager.Manager {
 			}
 			return sim.IsTimedLight();
 		}
-
-		public bool HasActiveTimedSimulation(ushort nodeId) {
+        public bool HasFlexibleSimulation(ushort nodeId)
+        {
+            TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+            if (sim == null)
+            {
+                return false;
+            }
+            return sim.IsFlexibleLight();
+        }
+        public bool HasActiveTimedSimulation(ushort nodeId) {
 			TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
 			if (sim == null) {
 				return false;
 			}
 			return sim.IsTimedLightActive();
 		}
-
-		private void RemoveNodeFromSimulation(ushort nodeId) {
+        public bool HasActiveFlexibleSimulation(ushort nodeId)
+        {
+            TrafficLightSimulation sim = TrafficLightSimulations[nodeId];
+            if (sim == null)
+            {
+                return false;
+            }
+            return sim.IsFlexibleLightActive();
+        }
+        private void RemoveNodeFromSimulation(ushort nodeId) {
 			TrafficLightSimulations[nodeId]?.Destroy();
 			TrafficLightSimulations[nodeId] = null;
 			UnsubscribeFromNodeGeometry(nodeId);

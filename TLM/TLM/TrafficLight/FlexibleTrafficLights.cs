@@ -414,6 +414,7 @@ namespace TrafficManager.TrafficLight
                 //int nextStepIndex = (CurrentStep + 1) % NumSteps();
                 //Log.Info($"node: {NodeId}");
                 int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId));
+                API.APIget.incrementWait(NodeGeometry.Get(NodeId));
 
                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 
@@ -668,6 +669,7 @@ namespace TrafficManager.TrafficLight
                 Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: updating existing segment end {endId} for node {NodeId}");
                 if (!SegmentEndManager.Instance.UpdateSegmentEnd(endId))
                 {
+                    
                     Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: segment end {endId} @ node {NodeId} is invalid");
                     segmentEndsToDelete.Add(endId);
                 }
@@ -677,6 +679,7 @@ namespace TrafficManager.TrafficLight
             foreach (SegmentEndId endId in segmentEndsToDelete)
             {
                 Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: Removing invalid segment end {endId} @ node {NodeId}");
+                
                 segmentEndIds.Remove(endId);
             }
 
@@ -685,25 +688,41 @@ namespace TrafficManager.TrafficLight
             NodeGeometry nodeGeo = NodeGeometry.Get(NodeId);
             foreach (SegmentEndGeometry endGeo in nodeGeo.SegmentEndGeometries)
             {
+                
                 if (endGeo == null)
                 {
+                    
                     continue;
                 }
 
                 if (segmentEndIds.Contains(endGeo))
                 {
                     Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: Node {NodeId} already knows segment {endGeo.SegmentId}");
+                    
                     continue;
                 }
 
                 Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: Adding segment {endGeo.SegmentId} to node {NodeId}");
+                
                 segmentEndIds.Add(SegmentEndManager.Instance.GetOrAddSegmentEnd(endGeo.SegmentId, endGeo.StartNode));
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Segment add or get?");
+                SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(endGeo.SegmentId, endGeo.StartNode);
+                if (end != null)
+                {
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "retrieved");
+
+                }
+                else
+                {
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "didnt retrieved");
+                }
             }
             Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: finished for node {NodeId}");
         }
 
         private void DestroySegmentEnds()
         {
+            
             Log._Debug($"FlexibleTrafficLights.DestroySegmentEnds: Destroying segment ends @ node {NodeId}");
             foreach (SegmentEndId endId in segmentEndIds)
             {

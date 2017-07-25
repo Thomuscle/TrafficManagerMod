@@ -16,6 +16,7 @@ using TrafficManager.UI;
 using TrafficManager.Manager;
 using System.Linq;
 using CSUtil.Commons;
+using ColossalFramework.Plugins;
 
 /// <summary>
 /// A segment end describes a directional traffic segment connected to a controlled node
@@ -86,8 +87,8 @@ namespace TrafficManager.Traffic {
 				ushort vehicleId = FirstRegisteredVehicleId;
 				while (vehicleId != 0) {
 					VehicleState state = vehStateManager._GetVehicleState(vehicleId);
-
-					bool removeVehicle = false;
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "doing sim step");
+                    bool removeVehicle = false;
 					if (!state.Valid) {
 						removeVehicle = true;
 					}
@@ -139,7 +140,7 @@ namespace TrafficManager.Traffic {
 			int numProcessed = 0;
 			while (vehicleId != 0) {
 				VehicleState state = vehStateManager._GetVehicleState(vehicleId);
-
+                
 				bool breakLoop = false;
 
 				state.ProcessCurrentAndNextPathPosition(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], delegate (ref Vehicle vehState, ref PathUnit.Position curPos, ref PathUnit.Position nextPos) {
@@ -238,8 +239,15 @@ namespace TrafficManager.Traffic {
 			int ret = 0;
 			while (vehicleId != 0) {
 				++ret;
-				vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
-			}
+          
+                VehicleState v = vehStateManager._GetVehicleState(vehicleId);
+                
+                int wait = vehStateManager._GetVehicleState(vehicleId).WaitTime;
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " ID: " + vehicleId);
+                vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
+                
+
+            }
 			return ret;
 		}
 

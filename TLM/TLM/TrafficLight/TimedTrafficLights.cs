@@ -13,6 +13,7 @@ using System.Threading;
 using TrafficManager.State;
 using GenericGameBridge.Service;
 using CSUtil.Commons;
+using ColossalFramework.Plugins;
 
 namespace TrafficManager.TrafficLight {
 	// TODO [version 1.10] define TimedTrafficLights per node group, not per individual nodes
@@ -954,7 +955,9 @@ namespace TrafficManager.TrafficLight {
 			foreach (SegmentEndId endId in segmentEndIds) {
 				Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: updating existing segment end {endId} for node {NodeId}");
 				if (! SegmentEndManager.Instance.UpdateSegmentEnd(endId)) {
-					Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: segment end {endId} @ node {NodeId} is invalid");
+                 
+
+                    Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: segment end {endId} @ node {NodeId} is invalid");
 					segmentEndsToDelete.Add(endId);
 				}
 			}
@@ -962,7 +965,8 @@ namespace TrafficManager.TrafficLight {
 			// remove all invalid segment ends
 			foreach (SegmentEndId endId in segmentEndsToDelete) {
 				Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: Removing invalid segment end {endId} @ node {NodeId}");
-				segmentEndIds.Remove(endId);
+                
+                segmentEndIds.Remove(endId);
 			}
 
 			// set up new segment ends
@@ -970,16 +974,19 @@ namespace TrafficManager.TrafficLight {
 			NodeGeometry nodeGeo = NodeGeometry.Get(NodeId);
 			foreach (SegmentEndGeometry endGeo in nodeGeo.SegmentEndGeometries) {
 				if (endGeo == null) {
-					continue;
+                    
+                    continue;
 				}
 
 				if (segmentEndIds.Contains(endGeo)) {
-					Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: Node {NodeId} already knows segment {endGeo.SegmentId}");
+                    
+                    Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: Node {NodeId} already knows segment {endGeo.SegmentId}");
 					continue;
 				}
 
 				Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: Adding segment {endGeo.SegmentId} to node {NodeId}");
-				segmentEndIds.Add(SegmentEndManager.Instance.GetOrAddSegmentEnd(endGeo.SegmentId, endGeo.StartNode));
+               
+                segmentEndIds.Add(SegmentEndManager.Instance.GetOrAddSegmentEnd(endGeo.SegmentId, endGeo.StartNode));
 			}
 			Log._Debug($"TimedTrafficLights.UpdateSegmentEnds: finished for node {NodeId}");
 		}

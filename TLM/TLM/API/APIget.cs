@@ -12,6 +12,7 @@ using CSUtil.Commons;
 using TrafficManager.Geometry;
 using ColossalFramework.Plugins;
 using System.Collections;
+using TrafficManager.Traffic;
 
 namespace TrafficManager.API
 {
@@ -634,6 +635,45 @@ namespace TrafficManager.API
             }
 
 
+        }
+
+        public static void incrementWait(NodeGeometry nodeGeometry)
+        {
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+
+            foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+            {
+                if (se == null || se.OutgoingOneWay)
+                    continue;
+               
+                SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                if (end == null)
+                {
+                    
+                    continue; // skip invalid segment
+                }
+
+                ushort vehicleId = end.FirstRegisteredVehicleId;
+                VehicleState firstState = vehStateMan._GetVehicleState(vehicleId);
+                int ret = 0;
+                while (vehicleId != 0)
+                {
+                    ++ret;
+                    VehicleState state = vehStateMan._GetVehicleState(vehicleId);
+                   
+                    
+                        
+                    state.WaitTime++;
+                 
+
+                    vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
+                    
+
+                }
+                
+
+               
+            }
         }
 
     }

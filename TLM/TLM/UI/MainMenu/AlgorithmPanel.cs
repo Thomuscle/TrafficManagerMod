@@ -15,6 +15,7 @@ using TrafficManager.Manager;
 using CSUtil.Commons;
 using ColossalFramework.Plugins;
 using TrafficManager.API;
+using TrafficManager.Traffic;
 
 namespace TrafficManager.UI.MainMenu {
 
@@ -36,6 +37,7 @@ namespace TrafficManager.UI.MainMenu {
 
 		public UIDragHandle Drag { get; private set; }
         UIButton m_algoButton;
+        UIButton m_testing;
         //private UILabel optionsLabel;
 
         public override void Start() {
@@ -51,6 +53,17 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton.relativePosition = new Vector3(15f, 20f);
             m_algoButton.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
                 clickToggleAllTrafficLights(component, eventParam);
+            };
+            m_testing = this.AddUIComponent<UIButton>();
+            m_testing.text = "Testing";
+            m_testing.normalBgSprite = "SubBarButtonBase";
+            m_testing.hoveredBgSprite = "SubBarButtonBaseHovered";
+            m_testing.pressedBgSprite = "SubBarButtonBasePressed";
+            m_testing.width = 220;
+            m_testing.height = 30;
+            m_testing.relativePosition = new Vector3(15f, 60f);
+            m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
+                dataRetrievalTesting(component, eventParam);
             };
             backgroundSprite = "GenericPanel";
 			color = new Color32(64, 64, 64, 240);
@@ -97,6 +110,57 @@ namespace TrafficManager.UI.MainMenu {
 			base.OnPositionChanged();
 		}
 
+
+        private static void dataRetrievalTesting(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            //SegmentEndManager endMan = SegmentEndManager.Instance;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Clicked");
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+                var node = netManager.m_nodes.m_buffer[i];
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+
+                if (hasLights)
+                {
+                    
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+                    {
+                        if (se == null || se.OutgoingOneWay)
+                            continue;
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "did loop here");
+                        SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId,se.StartNode);
+                        if (end == null)
+                        {
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "skip invalid seg");
+
+                            continue; // skip invalid segment
+                        }
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "DIDNT SKIP");
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message," ID: " + se.SegmentId);
+                        string a = end.GetRegisteredVehicleCount().ToString();
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "vCount: "+a);
+                        if (end.FirstRegisteredVehicleId != 0)
+                        {
+                            VehicleState state = vehStateMan._GetVehicleState(end.FirstRegisteredVehicleId);
+                            
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId);
+
+                        }
+
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "SegmentEndID: "+ se.SegmentId + " RegisteredVehicles: "+ end.GetRegisteredVehicleCount());
+                    }
+                    
+                    //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
+                }
+
+            }
+        }
         private static void clickToggleAllTrafficLights2(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
@@ -157,6 +221,7 @@ namespace TrafficManager.UI.MainMenu {
                         //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
 
                         sim.SetupFlexibleTrafficLight(nodeGroup);
+
                         Log.Info($"B");
                         NodeGeometry nodeGeometry = NodeGeometry.Get(i);
                         Log.Info($"C");

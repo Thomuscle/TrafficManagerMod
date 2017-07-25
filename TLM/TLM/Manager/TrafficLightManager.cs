@@ -126,6 +126,7 @@ namespace TrafficManager.Manager {
 			int numPedSegments = 0;
 			Services.NetService.IterateNodeSegments(nodeId, delegate (ushort segmentId, ref NetSegment segment) {
 				NetInfo info = segment.Info;
+                
 				if (info.m_class.m_service == ItemClass.Service.Road) {
 					++numRoads;
 				} else if ((info.m_vehicleTypes & VehicleInfo.VehicleType.Train) != VehicleInfo.VehicleType.None) {

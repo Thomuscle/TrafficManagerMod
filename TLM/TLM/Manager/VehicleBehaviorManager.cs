@@ -9,6 +9,7 @@ using TrafficManager.Custom.AI;
 using TrafficManager.Custom.PathFinding;
 using TrafficManager.State;
 using TrafficManager.Traffic;
+using TrafficManager.TrafficLight;
 using TrafficManager.UI;
 using TrafficManager.Util;
 using UnityEngine;
@@ -97,7 +98,7 @@ namespace TrafficManager.Manager {
 			bool isMonorail = vehicleData.Info.m_vehicleType == VehicleInfo.VehicleType.Monorail;
 
 			NetNode.Flags targetNodeFlags = targetNode.m_flags;
-			bool hasActiveTimedSimulation = (Options.timedLightsEnabled && TrafficLightSimulationManager.Instance.HasActiveTimedSimulation(targetNodeId));
+			bool hasActiveTimedSimulation = (Options.timedLightsEnabled && (TrafficLightSimulationManager.Instance.HasActiveTimedSimulation(targetNodeId)|| TrafficLightSimulationManager.Instance.HasActiveFlexibleSimulation(targetNodeId)));
 			bool hasTrafficLightFlag = (targetNodeFlags & NetNode.Flags.TrafficLights) != NetNode.Flags.None;
 			bool hasTrafficLight = hasTrafficLightFlag || hasActiveTimedSimulation;
 			if (hasActiveTimedSimulation && ! hasTrafficLightFlag) {
@@ -105,7 +106,7 @@ namespace TrafficManager.Manager {
 			}
 			bool hasStockYieldSign = false;
 			float sqrSpeed = lastFrameData.m_velocity.sqrMagnitude;
-			bool checkTrafficLights = hasActiveTimedSimulation;
+            bool checkTrafficLights = hasActiveTimedSimulation; 
 			bool isTargetStartNode = prevSegment.m_startNode == targetNodeId;
 			if (!isRailVehicle) {
 				// check if to check space
@@ -285,13 +286,14 @@ namespace TrafficManager.Manager {
 						//bool debug = destinationNodeId == 13531;
 						//bool debug = false;// targetNodeId == 5027;
 #endif
-						//bool debug = false;
+                        //bool debug = false;
 #if DEBUG
 						if (debug)
 							Log._Debug($"Vehicle {vehicleId} is arriving @ seg. {prevPos.m_segment} ({position.m_segment}, {nextPosition.m_segment}), node {targetNodeId} which is not a traffic light.");
-#endif
-
-						var sign = prioMan.GetPrioritySign(prevPos.m_segment, isTargetStartNode);
+#endif                  
+                       
+                        
+                        var sign = prioMan.GetPrioritySign(prevPos.m_segment, isTargetStartNode);
 						if (sign != PrioritySegment.PriorityType.None) {
 #if DEBUG
 							if (debug)

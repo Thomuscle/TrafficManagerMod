@@ -1,4 +1,5 @@
-﻿using CSUtil.Commons;
+﻿using ColossalFramework.Plugins;
+using CSUtil.Commons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,10 +43,11 @@ namespace TrafficManager.Manager {
 		public SegmentEnd GetOrAddSegmentEnd(ushort segmentId, bool startNode) {
 			SegmentEnd end = GetSegmentEnd(segmentId, startNode);
 			if (end != null) {
-				return end;
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "GET");
+                return end;
 			}
-
-			return SegmentEnds[GetIndex(segmentId, startNode)] = new SegmentEnd(segmentId, startNode);
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "ADD");
+            return SegmentEnds[GetIndex(segmentId, startNode)] = new SegmentEnd(segmentId, startNode);
 		}
 
 		public void RemoveSegmentEnd(SegmentEndId endId) {
@@ -56,7 +58,9 @@ namespace TrafficManager.Manager {
 #if DEBUG
 			Log._Debug($"SegmentEndManager.RemoveSegmentEnd({segmentId}, {startNode}) called");
 #endif
-			DestroySegmentEnd(GetIndex(segmentId, startNode));
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Removed end");
+
+            DestroySegmentEnd(GetIndex(segmentId, startNode));
 		}
 
 		public void RemoveSegmentEnds(ushort segmentId) {
@@ -89,7 +93,7 @@ namespace TrafficManager.Manager {
 			}
 
 			if (TrafficPriorityManager.Instance.HasSegmentPrioritySign(segmentId, startNode) ||
-				TrafficLightSimulationManager.Instance.HasTimedSimulation(end.NodeId())) {
+				TrafficLightSimulationManager.Instance.HasTimedSimulation(end.NodeId()) || TrafficLightSimulationManager.Instance.HasFlexibleSimulation(end.NodeId())) {
 				Log._Debug($"SegmentEndManager.UpdateSegmentEnd({segmentId}, {startNode}): Segment {segmentId} @ {startNode} has timed light or priority sign. Adding segment end {segmentId} @ {startNode}");
 				GetOrAddSegmentEnd(segmentId, startNode).Update();
 				return true;
@@ -116,7 +120,8 @@ namespace TrafficManager.Manager {
 #if DEBUG
 			Log._Debug($"SegmentEndManager.DestroySegmentEnd({index}) called");
 #endif
-			SegmentEnds[index]?.Destroy();
+            
+            SegmentEnds[index]?.Destroy();
 			SegmentEnds[index] = null;
 		}
 
