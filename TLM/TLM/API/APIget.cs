@@ -645,34 +645,58 @@ namespace TrafficManager.API
             {
                 if (se == null || se.OutgoingOneWay)
                     continue;
-               
+
                 SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
                 if (end == null)
                 {
-                    
+
                     continue; // skip invalid segment
                 }
 
+                //ushort vehicleId = end.FirstRegisteredVehicleId;
+                //VehicleState firstState = vehStateMan._GetVehicleState(vehicleId);
+                //int ret = 0;
+                //while (vehicleId != 0)
+                //{
+                //    ++ret;
+                //    VehicleState state = vehStateMan._GetVehicleState(vehicleId);
+
+
+
+                //    state.WaitTime++;
+
+
+                //    vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
+
+
+                //}
+
                 ushort vehicleId = end.FirstRegisteredVehicleId;
-                VehicleState firstState = vehStateMan._GetVehicleState(vehicleId);
-                int ret = 0;
+                int numProcessed = 0;
                 while (vehicleId != 0)
                 {
-                    ++ret;
                     VehicleState state = vehStateMan._GetVehicleState(vehicleId);
-                   
-                    
-                        
                     state.WaitTime++;
-                 
 
-                    vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
-                    
+                    bool breakLoop = false;
 
+                    state.ProcessCurrentAndNextPathPosition(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], delegate (ref Vehicle vehState, ref PathUnit.Position curPos, ref PathUnit.Position nextPos)
+                    {
+                        if (!state.CheckValidity(ref vehState))
+                        {
+                            end.RequestCleanup();
+                            return;
+                        }
+
+                        Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
+
+                    });
+
+                    if (breakLoop)
+                        break;
+
+                    vehicleId = state.NextVehicleIdOnSegment;
                 }
-                
-
-               
             }
         }
 
