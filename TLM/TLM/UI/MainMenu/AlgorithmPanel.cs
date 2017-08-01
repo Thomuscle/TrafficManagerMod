@@ -129,8 +129,8 @@ namespace TrafficManager.UI.MainMenu {
                 {
 
                     NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-                    if (nodeGeometry.NodeId.Equals(20832))
-                    {
+                    //if (nodeGeometry.NodeId.Equals(20832))
+                    //{
 
                     
                         foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
@@ -158,7 +158,7 @@ namespace TrafficManager.UI.MainMenu {
                             }
 
                             //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "SegmentEndID: "+ se.SegmentId + " RegisteredVehicles: "+ end.GetRegisteredVehicleCount());
-                        }
+                        //}
                     }
                     //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
                 }

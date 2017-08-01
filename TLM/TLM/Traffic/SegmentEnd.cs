@@ -142,7 +142,7 @@ namespace TrafficManager.Traffic {
 				VehicleState state = vehStateManager._GetVehicleState(vehicleId);
                 
 				bool breakLoop = false;
-
+                
 				state.ProcessCurrentAndNextPathPosition(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], delegate (ref Vehicle vehState, ref PathUnit.Position curPos, ref PathUnit.Position nextPos) {
 					if (!state.CheckValidity(ref vehState)) {
 						RequestCleanup();
@@ -241,9 +241,13 @@ namespace TrafficManager.Traffic {
 				++ret;
           
                 VehicleState v = vehStateManager._GetVehicleState(vehicleId);
+                if (v.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]))
+                {
+                    int wait = vehStateManager._GetVehicleState(vehicleId).WaitTime;
+
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " vID: " + vehicleId + " segID: " + SegmentId);
+                }
                 
-                int wait = vehStateManager._GetVehicleState(vehicleId).WaitTime;
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " vID: " + vehicleId + " segID: " + SegmentId);
                 vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
                 
 

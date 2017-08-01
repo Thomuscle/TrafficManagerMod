@@ -151,67 +151,72 @@ namespace TrafficManager.API
                 {
 
                     VehicleState v = vehStateMan._GetVehicleState(vehicleId);
-
-                    VehicleState.Direction d = v.direction;
-                    int w = v.WaitTime;
-                    int index = 0;
-
-                    for(int i=0; i<4; i++)
+                    //hopefully this fixes, checks to see if vehicle is valid before using it
+                    if (v.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]))
                     {
-                        if (phases[0].SegArray[i].Equals(0))
+                       
+                        VehicleState.Direction d = v.direction;
+                        int w = v.WaitTime;
+                        int index = 0;
+
+                        for (int i = 0; i < 4; i++)
                         {
-                            index--;
-                            //Log.Info($"No Segment: {index}");
-                            continue;
-                        }
-                        //Log.Info($"1st if. ID: {nodeGeometry.NodeId}");
-                        if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).NodeId().Equals(nodeGeometry.NodeId))
-                        {
-                            //Log.Info($"2nd if. ID: {nodeGeometry.NodeId}");
-                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).OutgoingOneWay)
+                            if (phases[0].SegArray[i].Equals(0))
                             {
-                                //Log.Info($"3rd if. ID: {nodeGeometry.NodeId}");
                                 index--;
-                                //Log.Info($"Outgoing One Way: {index}");
+                                //Log.Info($"No Segment: {index}");
                                 continue;
                             }
-                        }
-                        else
-                        {
-                            //Log.Info($"4th if. ID: {nodeGeometry.NodeId}");
-                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], false).OutgoingOneWay)
+                            //Log.Info($"1st if. ID: {nodeGeometry.NodeId}");
+                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).NodeId().Equals(nodeGeometry.NodeId))
                             {
-                                //Log.Info($"5th if. ID: {nodeGeometry.NodeId}");
-                                index--;
-                                //Log.Info($"Outgoing One Way: {index}");
-                                continue;
+                                //Log.Info($"2nd if. ID: {nodeGeometry.NodeId}");
+                                if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).OutgoingOneWay)
+                                {
+                                    //Log.Info($"3rd if. ID: {nodeGeometry.NodeId}");
+                                    index--;
+                                    //Log.Info($"Outgoing One Way: {index}");
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                //Log.Info($"4th if. ID: {nodeGeometry.NodeId}");
+                                if (SegmentEndGeometry.Get(phases[0].SegArray[i], false).OutgoingOneWay)
+                                {
+                                    //Log.Info($"5th if. ID: {nodeGeometry.NodeId}");
+                                    index--;
+                                    //Log.Info($"Outgoing One Way: {index}");
+                                    continue;
+                                }
+                            }
+
+                            if (phases[0].SegArray[i].Equals(se.SegmentId))
+                            {
+                                //Log.Info($"6th if. ID: {nodeGeometry.NodeId}");
+                                index = index + i;
+                                //Log.Info($"Final Index: {index}");
+                                break;
                             }
                         }
 
-                        if (phases[0].SegArray[i].Equals(se.SegmentId))
+                        if (index < 0)
                         {
-                            //Log.Info($"6th if. ID: {nodeGeometry.NodeId}");
-                            index = index + i;
-                            //Log.Info($"Final Index: {index}");
-                            break;
+                            index = 0;
                         }
-                    }
 
-                    if (index < 0)
-                    {
-                        index = 0;
-                    }
+                        //Log.Info($"queueLengths: {queueLengths.Length}, value: {index * 3 + (int)d} ");
+                        queueLengths[index * 3 + (int)d]++;
+                        //Log.Info($"incr queue length: {nodeGeometry.NodeId}");
+                        if (w > longestWaiting[index * 3 + (int)d])
+                        {
+                            longestWaiting[index * 3 + (int)d] = w;
+                            //TODO set the wait time to maximum minus vehicle position
+                        }
+                        //Log.Info($"longest waiting set ID: {nodeGeometry.NodeId}");
 
-                    //Log.Info($"queueLengths: {queueLengths.Length}, value: {index * 3 + (int)d} ");
-                    queueLengths[index * 3 + (int)d]++;
-                    //Log.Info($"incr queue length: {nodeGeometry.NodeId}");
-                    if (w > longestWaiting[index * 3 + (int)d])
-                    {
-                        longestWaiting[index * 3 + (int)d] = w;
-                        //TODO set the wait time to maximum minus vehicle position
+                        
                     }
-                    //Log.Info($"longest waiting set ID: {nodeGeometry.NodeId}");
-
                     vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
                 }
               
@@ -796,7 +801,7 @@ namespace TrafficManager.API
                 while (vehicleId != 0)
                 {
                     VehicleState state = vehStateMan._GetVehicleState(vehicleId);
-                    state.WaitTime++;
+                    
 
                     bool breakLoop = false;
 
@@ -808,7 +813,7 @@ namespace TrafficManager.API
                             end.RequestCleanup();
                             return;
                         }
-                        
+                        state.WaitTime++;
                         //Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
                         for (int i = 0; i< se.RightSegments.Length; i++)
                         {
