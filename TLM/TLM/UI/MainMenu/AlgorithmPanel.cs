@@ -127,35 +127,39 @@ namespace TrafficManager.UI.MainMenu {
 
                 if (hasLights)
                 {
-                    
+
                     NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-                    foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+                    if (nodeGeometry.NodeId.Equals(20832))
                     {
-                        if (se == null || se.OutgoingOneWay)
-                            continue;
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "did loop here");
-                        SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId,se.StartNode);
-                        if (end == null)
-                        {
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "skip invalid seg");
 
-                            continue; // skip invalid segment
-                        }
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "DIDNT SKIP");
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message," ID: " + se.SegmentId);
-                        string a = end.GetRegisteredVehicleCount().ToString();
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "vCount: "+a);
-                        if (end.FirstRegisteredVehicleId != 0)
-                        {
-                            VehicleState state = vehStateMan._GetVehicleState(end.FirstRegisteredVehicleId);
-                            
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId);
-
-                        }
-
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "SegmentEndID: "+ se.SegmentId + " RegisteredVehicles: "+ end.GetRegisteredVehicleCount());
-                    }
                     
+                        foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (se == null || se.OutgoingOneWay)
+                                continue;
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "did loop here");
+                            SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                            if (end == null)
+                            {
+                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "skip invalid seg");
+
+                                continue; // skip invalid segment
+                            }
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "DIDNT SKIP");
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ID: " + se.SegmentId);
+                            string a = end.GetRegisteredVehicleCount().ToString();
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "vCount: "+a);
+                            if (end.FirstRegisteredVehicleId != 0)
+                            {
+                                VehicleState state = vehStateMan._GetVehicleState(end.FirstRegisteredVehicleId);
+
+                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId);
+
+                            }
+
+                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "SegmentEndID: "+ se.SegmentId + " RegisteredVehicles: "+ end.GetRegisteredVehicleCount());
+                        }
+                    }
                     //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
                 }
 
@@ -207,6 +211,11 @@ namespace TrafficManager.UI.MainMenu {
 
                 if (hasLights)
                 {
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    if (nodeGeometry.NumSegmentEnds >4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments>1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
                     if (_areAllTrafficLightsRed)
                     {
@@ -217,37 +226,34 @@ namespace TrafficManager.UI.MainMenu {
 
                         List<ushort> nodeGroup = new List<ushort>();
                         nodeGroup.Add(i);
-                        Log.Info($"A");
+                        
                         //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
 
                         sim.SetupFlexibleTrafficLight(nodeGroup);
 
-                        Log.Info($"B");
-                        NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-                        Log.Info($"C");
+                       
+                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                        
                         //Instead of next foreach statement API Call to figure out possible steps and add each one of those
                         ushort[] segArray;
                         List<Phase> phases = APIget.buildOrderedPhases(nodeGeometry, out segArray);
-                        Log.Info($"D");
+                        
 
                         foreach (Phase phase in phases)
                         {
-                            string s = "";
+                            
                             ushort[] rslArray = phase.getRslArray(segArray, nodeGeometry);
-                            for (int q = 0; q < rslArray.Length; q++)
-                            {
-                                s = s + rslArray[q];
-                            }
-                            Log.Info($"rsl array: {s}");
+                            
+                            
                             sim.FlexibleLight.AddStep(rslArray, segArray);
-                            Log.Info($"step added");
+                            
                         }
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
                             if (end == null || end.OutgoingOneWay)
                                 continue;
                             var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode);
-                            Log.Info($"segment lights: {segmentLights.ToString()}");
+                            
                             foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
                             {
                                 CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);

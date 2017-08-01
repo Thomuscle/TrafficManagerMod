@@ -66,7 +66,7 @@ namespace TrafficManager.TrafficLight {
 			get { return leftLight; }
             set
             {
-                Log.Info($"lightleft v: {value} sID: {SegmentId}");
+                //Log.Info($"lightleft v: {value} sID: {SegmentId}");
 
                 if (leftLight == value)
                     return;
@@ -80,7 +80,7 @@ namespace TrafficManager.TrafficLight {
 			get { return mainLight; }
             set
             {
-                Log.Info($"lightmain v: {value} sID: {SegmentId}");
+                //Log.Info($"lightmain v: {value} sID: {SegmentId}");
                 if (mainLight == value)
                     return;
 
@@ -92,7 +92,7 @@ namespace TrafficManager.TrafficLight {
 			get { return rightLight; }
             set
             {
-                Log.Info($"lightright v: {value} sID: {SegmentId}");
+                //Log.Info($"lightright v: {value} sID: {SegmentId}");
                 if (rightLight == value)
                     return;
 

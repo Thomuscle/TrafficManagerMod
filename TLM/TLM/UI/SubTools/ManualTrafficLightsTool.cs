@@ -78,7 +78,8 @@ namespace TrafficManager.UI.SubTools {
 				}*/ // TODO check
 
 				NodeGeometry nodeGeometry = NodeGeometry.Get(SelectedNodeId);
-				foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries) {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "NodeID:  " + nodeGeometry.NodeId);
+                foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries) {
 					if (end == null)
 						continue;
 

@@ -14,7 +14,7 @@ namespace TrafficManager.API
         int numSegs;
         public Phase(int numSegs)
         {
-            Log.Info($"number of segments in phase: {numSegs}");
+            //Log.Info($"number of segments in phase: {numSegs}");
             segments = new ushort[numSegs];
             directions = new Directions[numSegs];
             this.numSegs = numSegs;
@@ -38,7 +38,7 @@ namespace TrafficManager.API
         {
             segments[index] = seg;
             directions[index] = dir;
-            Log.Info($"ADDING SEGMENT AND DIRECTION TO PHASE: {seg} - {dir}");
+            //Log.Info($"ADDING SEGMENT AND DIRECTION TO PHASE: {seg} - {dir}");
         }
 
         public void copy(Phase phase, int numSegs)
@@ -60,7 +60,7 @@ namespace TrafficManager.API
             for (int i = 0; i < numSegs; i++)
             {
                 ushort seg = segments[i];
-                Log.Info($"segment: {seg}");
+                //Log.Info($"segment: {seg}");
 
                 Directions dir = directions[i];
                 int k = 0;
@@ -68,7 +68,7 @@ namespace TrafficManager.API
                 {
                     if(seg.Equals(segArray[j]))
                     {
-                        Log.Info($"K = {k} for {seg}");
+                        //Log.Info($"K = {k} for {seg}");
                         switch (dir)
                         {
                             case Directions.None:

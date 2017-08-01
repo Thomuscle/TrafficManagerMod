@@ -40,10 +40,16 @@ namespace TrafficManager.Traffic {
 		public float TotalLength {
 			get; private set;
 		}
-
+        public enum Direction
+        {
+            Right = 0,
+            Straight = 1,
+            Left = 2
+        }
 		private ushort VehicleId;
 		public int WaitTime = 0;
-		public float ReduceSqrSpeedByValueToYield;
+        public Direction direction = Direction.Right;
+        public float ReduceSqrSpeedByValueToYield;
 		private bool valid = false;
 
 		public bool Valid {
@@ -515,7 +521,7 @@ namespace TrafficManager.Traffic {
 				if (CurrentSegmentEnd != null) {
 					Unlink();
 				}
-
+                
 				WaitTime = 0;
 				if (end != null) {
 #if DEBUGVSTATE

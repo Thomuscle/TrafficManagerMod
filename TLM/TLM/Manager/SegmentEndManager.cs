@@ -43,10 +43,10 @@ namespace TrafficManager.Manager {
 		public SegmentEnd GetOrAddSegmentEnd(ushort segmentId, bool startNode) {
 			SegmentEnd end = GetSegmentEnd(segmentId, startNode);
 			if (end != null) {
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "GET");
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "GET");
                 return end;
 			}
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "ADD");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "ADD");
             return SegmentEnds[GetIndex(segmentId, startNode)] = new SegmentEnd(segmentId, startNode);
 		}
 
@@ -58,7 +58,7 @@ namespace TrafficManager.Manager {
 #if DEBUG
 			Log._Debug($"SegmentEndManager.RemoveSegmentEnd({segmentId}, {startNode}) called");
 #endif
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Removed end");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Removed end");
 
             DestroySegmentEnd(GetIndex(segmentId, startNode));
 		}

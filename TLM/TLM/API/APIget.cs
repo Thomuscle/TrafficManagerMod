@@ -13,11 +13,13 @@ using TrafficManager.Geometry;
 using ColossalFramework.Plugins;
 using System.Collections;
 using TrafficManager.Traffic;
+using TrafficManager.TrafficLight;
 
 namespace TrafficManager.API
 {
     public static class APIget
     {
+
         //returns a list of nodes with traffic lights 
         public static List<NetNode> getNodes()
         {
@@ -96,7 +98,7 @@ namespace TrafficManager.API
         //static bool stepHappening = false;
         //static uint startFrame = 0;
 
-        public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry node)
+        public static int getNextIndexRoundRobin(int currentStep, int noOfSteps, NodeGeometry node)
         {
             if (!node.StepHappening)
             {
@@ -119,16 +121,170 @@ namespace TrafficManager.API
 
         }
 
+        public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+        {
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+
+            ushort[] queueLengths = new ushort[phases[0].LightValues.Length];
+            int[] directionOrdering = new int[phases[0].LightValues.Length];
+            int[] longestWaiting = new int[phases[0].LightValues.Length];
+
+            for(int i = 0; i < directionOrdering.Length; i++)
+            {
+                directionOrdering[i] = i;
+            }
+            //Log.Info($"direction ordering initialised ID: {nodeGeometry.NodeId}");
+            foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+            {
+                if (se == null || se.OutgoingOneWay)
+                    continue;
+                //Log.Info($"passed outgoing one way ID: {nodeGeometry.NodeId}");
+                SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                if (end == null)
+                {
+                    continue; // skip invalid segment
+                }
+
+                ushort vehicleId = end.FirstRegisteredVehicleId;
+                while (vehicleId != 0)
+                {
+
+                    VehicleState v = vehStateMan._GetVehicleState(vehicleId);
+
+                    VehicleState.Direction d = v.direction;
+                    int w = v.WaitTime;
+                    int index = 0;
+
+                    for(int i=0; i<4; i++)
+                    {
+                        if (phases[0].SegArray[i].Equals(0))
+                        {
+                            index--;
+                            //Log.Info($"No Segment: {index}");
+                            continue;
+                        }
+                        //Log.Info($"1st if. ID: {nodeGeometry.NodeId}");
+                        if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).NodeId().Equals(nodeGeometry.NodeId))
+                        {
+                            //Log.Info($"2nd if. ID: {nodeGeometry.NodeId}");
+                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).OutgoingOneWay)
+                            {
+                                //Log.Info($"3rd if. ID: {nodeGeometry.NodeId}");
+                                index--;
+                                //Log.Info($"Outgoing One Way: {index}");
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            //Log.Info($"4th if. ID: {nodeGeometry.NodeId}");
+                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], false).OutgoingOneWay)
+                            {
+                                //Log.Info($"5th if. ID: {nodeGeometry.NodeId}");
+                                index--;
+                                //Log.Info($"Outgoing One Way: {index}");
+                                continue;
+                            }
+                        }
+
+                        if (phases[0].SegArray[i].Equals(se.SegmentId))
+                        {
+                            //Log.Info($"6th if. ID: {nodeGeometry.NodeId}");
+                            index = index + i;
+                            //Log.Info($"Final Index: {index}");
+                            break;
+                        }
+                    }
+
+                    if (index < 0)
+                    {
+                        index = 0;
+                    }
+
+                    //Log.Info($"queueLengths: {queueLengths.Length}, value: {index * 3 + (int)d} ");
+                    queueLengths[index * 3 + (int)d]++;
+                    //Log.Info($"incr queue length: {nodeGeometry.NodeId}");
+                    if (w > longestWaiting[index * 3 + (int)d])
+                    {
+                        longestWaiting[index * 3 + (int)d] = w;
+                        //TODO set the wait time to maximum minus vehicle position
+                    }
+                    //Log.Info($"longest waiting set ID: {nodeGeometry.NodeId}");
+
+                    vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
+                }
+              
+            }
+            //TODO sort out blocked target segments
+            for (int i = 0; i < longestWaiting.Length; i++)
+            {
+                if(longestWaiting[i] > 25)
+                {
+                    queueLengths[i] = ushort.MaxValue;
+                }
+            }
+
+            if (nodeGeometry.NodeId.Equals(20832))
+            {
+                for (int p = 0; p< queueLengths.Length; p++)
+                {
+                    Log.Info($"index: {p} queuelengths: {queueLengths[p]}");
+
+                }
+                //print queueLengths
+            }
+            //Log.Info($"queue len waiting set to max. ID: {nodeGeometry.NodeId}");
+            Array.Sort(queueLengths, directionOrdering, Comparer.Default);
+            Array.Reverse(directionOrdering);
+            //Log.Info($"sort and reverse ID: {nodeGeometry.NodeId}");
+            List<FlexibleTrafficLightsStep> currentSubList = new List<FlexibleTrafficLightsStep>(phases);
+            List<FlexibleTrafficLightsStep> tempSubList = new List<FlexibleTrafficLightsStep>(phases);
+
+            for (int i = 0; i < directionOrdering.Length; i++)
+            {
+                foreach(FlexibleTrafficLightsStep f in currentSubList)
+                {
+                    if (f.LightValues[directionOrdering[i]].Equals(0))
+                    {
+                        tempSubList.Remove(f);
+                    }
+                }
+                //Log.Info($"finding which phases to remove ID: {nodeGeometry.NodeId}");
+                if (!tempSubList.Count.Equals(0))
+                {
+                    currentSubList = new List<FlexibleTrafficLightsStep>(tempSubList);
+                }
+                else
+                {
+                    tempSubList = new List<FlexibleTrafficLightsStep>(currentSubList);
+                }
+            }
+
+            if (nodeGeometry.NodeId.Equals(20832))
+            {
+                for (int p= 0; p < currentSubList[0].LightValues.Length; p++)
+                {
+                    Log.Info($"current sub list light value index {p}: {currentSubList[0].LightValues[p]}");
+                }
+
+                for (int p = 0; p < directionOrdering.Length; p++)
+                {
+                    Log.Info($"current ordering index {p}: {directionOrdering[p]}");
+                }
+
+            }
+
+            //Log.Info($"setting the step done ID: {nodeGeometry.NodeId}");
+            return phases.IndexOf(currentSubList[0]);
+        }
+
         public static List<Phase> buildOrderedPhases(NodeGeometry node, out ushort[] segArray)
         {
             int numSegs;
             segArray = getOrderedSegments(node, out numSegs);
-            string s = "";
-            for (int q = 0; q < segArray.Length; q++)
-            {
-                s = s + " " + segArray[q];
-            }
-            Log.Info($"SEGARRAY: {s}");
+            
+            
             List<Phase> phaseList = new List<Phase>();
 
             phaseList = phaseBuilder(segArray, numSegs, node);
@@ -180,12 +336,8 @@ namespace TrafficManager.API
                     turnPossibilities[j] = false;
                 }
             }
-            string s = "";
-            for (int q = 0; q < turnPossibilities.Length; q++)
-            {
-                s = s + " " + turnPossibilities[q];
-            }
-            Log.Info($"TURN POSIBILITIES FOR {segArray[currentIndex]}: {s}");
+           
+            
             return turnPossibilities;
         }
 
@@ -205,7 +357,7 @@ namespace TrafficManager.API
                 {
                     if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
                     {
-                        Log.Info($" OUTGOING ONEWAY w TRUE? : {SegmentEndGeometry.Get(currentSeg, true).ToString()}");
+                        
                         numSegs--;
                         continue;
                     }
@@ -214,14 +366,14 @@ namespace TrafficManager.API
                 {
                     if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
                     {
-                        Log.Info($" OUTGOING ONEWAY w FALSE? : {SegmentEndGeometry.Get(currentSeg, false).ToString()}");
+                        
                         numSegs--;
                         continue;
                     }
                 }
             }
 
-            Log.Info($"NO. OF SEGMENTS AFTER CONSIDERING OUTGOING ONEWAYS:  {numSegs}");
+            
             for (int i = 0; i < 4; i++)
             {
                 ushort currentSeg = segArray[i];
@@ -235,7 +387,7 @@ namespace TrafficManager.API
                 {
                     if (SegmentEndGeometry.Get(currentSeg, true).OutgoingOneWay)
                     {
-                        Log.Info($"!!!! OUTGOING ONEWAY w TRUE? : {SegmentEndGeometry.Get(currentSeg, true).ToString()}");
+                        
                         continue;
                     }
                 }
@@ -243,7 +395,7 @@ namespace TrafficManager.API
                 {
                     if (SegmentEndGeometry.Get(currentSeg, false).OutgoingOneWay)
                     {
-                        Log.Info($"!!!! OUTGOING ONEWAY w FALSE? : {SegmentEndGeometry.Get(currentSeg, false).ToString()}");
+                        
                         continue;
                     }
                 }
@@ -282,12 +434,8 @@ namespace TrafficManager.API
                             conflictArray[3] = true;
                             break;
                     }
-                    string s2 = "";
-                    for (int q = 0; q < conflictArray.Length; q++)
-                    {
-                        s2 = s2 + " "+conflictArray[q];
-                    }
-                    Log.Info($"initial conflict array before recursive function is called: {s2}");
+                    
+                    
                     
                     recursiveBuilder(1, segsSeen, phase, conflictArray,segArray,i, numSegs, phaseList, node);
                 }
@@ -301,57 +449,53 @@ namespace TrafficManager.API
             ushort[] tempSegArray = new ushort[4];
 
             tempSegArray[0] = node.SegmentEndGeometries[0].SegmentId;
-            Log.Info($"self: {node.SegmentEndGeometries[0].SegmentId}");
+            
             numSegs = 1;
 
             if (node.SegmentEndGeometries[0].NumRightSegments > 0)
             {
                 tempSegArray[1] = node.SegmentEndGeometries[0].RightSegments[0];
                 numSegs++;
-                Log.Info($"has right segments: {node.SegmentEndGeometries[0].RightSegments[0]}");
+                
             }
             else
             {
                 tempSegArray[1] = 0;
-                Log.Info($"doesn't have right segments: {node.SegmentEndGeometries[0].RightSegments[0]}");
+                //Log.Info($"doesn't have right segments: {node.SegmentEndGeometries[0].RightSegments[0]}");
             }
 
             if (node.SegmentEndGeometries[0].NumStraightSegments > 0)
             {
                 tempSegArray[2] = node.SegmentEndGeometries[0].StraightSegments[0];
                 numSegs++;
-                Log.Info($"has straight segments: {node.SegmentEndGeometries[0].StraightSegments[0]}");
+                //Log.Info($"has straight segments: {node.SegmentEndGeometries[0].StraightSegments[0]}");
             }
             else
             {
                 tempSegArray[2] = 0;
-                Log.Info($"doesn't have straight segments: {node.SegmentEndGeometries[0].StraightSegments[0]}");
+                //Log.Info($"doesn't have straight segments: {node.SegmentEndGeometries[0].StraightSegments[0]}");
             }
 
             if (node.SegmentEndGeometries[0].NumLeftSegments > 0)
             {
                 tempSegArray[3] = node.SegmentEndGeometries[0].LeftSegments[0];
                 numSegs++;
-                Log.Info($"has left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
+                //Log.Info($"has left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
             }
             else
             {
                 tempSegArray[3] = 0;
-                Log.Info($"doesnt have left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
+                //Log.Info($"doesnt have left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
             }
-            Log.Info($"NO. OF SEGMENTS: {numSegs}");
+            //Log.Info($"NO. OF SEGMENTS: {numSegs}");
             return tempSegArray;
         }
 
 
         public static void recursiveBuilder(int depth, ArrayList segmentsSeen, Phase phase, bool[] conflictArray, ushort[] segArray, int initialSegmentIndex, int numSegs, List<Phase> phases, NodeGeometry node)
         {
-            string s = "";
-            for (int q = 0; q < conflictArray.Length; q++)
-            {
-                s = s + " "+ conflictArray[q];
-            }
-            Log.Info($"initial conflict array: {s} ID: {segArray[initialSegmentIndex]}");
+            
+            
             bool noMoreValid = true;
             for (int i = 0; i<4; i++)
             {
@@ -417,12 +561,8 @@ namespace TrafficManager.API
                             break;
                     }
                     
-                    string s2 = "";
-                    for (int q = 0; q < recursiveConflictArray.Length; q++)
-                    {
-                        s2 = s2 + " " + recursiveConflictArray[q];
-                    }
-                    Log.Info($"recursive conflict array: {s2} ID: {currentSeg}");
+                    
+                    
                     int diff = i - initialSegmentIndex;
 
                     bool[] rotatedRecursiveConflictArray = recursiveConflictArray;
@@ -458,12 +598,7 @@ namespace TrafficManager.API
                     }
 
                     bool isValid = true;
-                    string s3 = "";
-                    for (int q = 0; q < rotatedRecursiveConflictArray.Length; q++)
-                    {
-                        s3 = s3 + " " + rotatedRecursiveConflictArray[q];
-                    }
-                    Log.Info($"rotated recursive conflict array: {s3} ID: {currentSeg}");
+                    
                     for (int k = 0; k < 4; k++)
                     {
                         if(rotatedRecursiveConflictArray[k] && conflictArray[k])
@@ -472,28 +607,18 @@ namespace TrafficManager.API
                             break;
                         }
                     }
-                    Log.Info($"depth:  {depth} ID: {currentSeg}");
+                    
 
                     if (isValid)
                     {
                         noMoreValid = false;
-                        string s4 = "";
-                        for (int q = 0; q < rotatedRecursiveConflictArray.Length; q++)
-                        {
-                            s4 = s4 + " " + rotatedRecursiveConflictArray[q];
-                        }
-                        Log.Info($"valid rotated recursive conflict array: {s4} ID: {currentSeg}");
+                        
                         bool[] newConflictArray = new bool[4];
                         for (int k = 0; k < 4; k++)
                         {
                             newConflictArray[k] = rotatedRecursiveConflictArray[k] || conflictArray[k];                         
                         }
-                        s3 = "";
-                        for (int q = 0; q < newConflictArray.Length; q++)
-                        {
-                            s3 = s3 + " " + newConflictArray[q];
-                        }
-                        Log.Info($"new conflict array: {s3} ID: {segArray[initialSegmentIndex]}");
+                        
                         segmentsSeen.Add(i);
                         phase.addDirAndSeg(depth, currentSeg, (Phase.Directions)(j+1));
                         depth++;
@@ -520,7 +645,7 @@ namespace TrafficManager.API
                                 {
                                     if (SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
                                     {
-                                        Log.Info($"outgoing true: {tempSeg}");
+                                        //Log.Info($"outgoing true: {tempSeg}");
 
                                         continue;
                                     }
@@ -529,7 +654,7 @@ namespace TrafficManager.API
                                 {
                                     if (SegmentEndGeometry.Get(tempSeg, false).OutgoingOneWay)
                                     {
-                                        Log.Info($"outgoing false: {tempSeg} ");
+                                        //Log.Info($"outgoing false: {tempSeg} ");
                                         continue;
                                     }
                                 }
@@ -538,7 +663,7 @@ namespace TrafficManager.API
                                 {
                                     if (k == (int)o)
                                     {
-                                        Log.Info($"is seen: {tempSeg} ");
+                                        //Log.Info($"is seen: {tempSeg} ");
                                         isSeenTemp = true;
                                         break;
                                     }
@@ -569,30 +694,25 @@ namespace TrafficManager.API
             }
             if (noMoreValid)
             {
-                Log.Info($"no more valid, ID: {segArray[initialSegmentIndex]}");
+                //Log.Info($"no more valid, ID: {segArray[initialSegmentIndex]}");
 
                 int l = segmentsSeen.Count;
-                string s4 = "";
-                for (int q = 0; q < segArray.Length; q++)
-                {
-                    s4 = s4 + " " + segArray[q];
-                }
-                Log.Info($"{s4} ID: {segArray[initialSegmentIndex]}");
+                
                 for (int k = 0; k < 4; k++)
                 {
-                    Log.Info($"L: {l}");
+                    
 
                     ushort tempSeg = segArray[k];
                     if (tempSeg.Equals(0))
                     {
-                        Log.Info($"skipped");
+                        
                         continue;
                     }
                     if (SegmentEndGeometry.Get(tempSeg, true).NodeId().Equals(node.NodeId))
                     {
                         if (SegmentEndGeometry.Get(tempSeg, true).OutgoingOneWay)
                         {
-                            Log.Info($"skipped");
+                            
                             continue;
                         }
                     }
@@ -600,7 +720,7 @@ namespace TrafficManager.API
                     {
                         if (SegmentEndGeometry.Get(tempSeg, false).OutgoingOneWay)
                         {
-                            Log.Info($"skipped");
+                            
                             continue;
                         }
                     }
@@ -611,32 +731,32 @@ namespace TrafficManager.API
                         if (k == (int)o)
                         {
                             isSeenTemp = true;
-                            Log.Info($"broke");
+                            
                             break;
                         }
                     }
                     if (!isSeenTemp)
                     {
-                        Log.Info($"added phase");
+                        
                         phase.addDirAndSeg(l, tempSeg, (Phase.Directions)0);
                         l++;
                     }
                 }
 
-                Log.Info($"a");
+                
                 Phase copyPhase = new Phase(numSegs);
-                Log.Info($"b");
+                
                 copyPhase.copy(phase, numSegs);
-                Log.Info($"c");
+                
                 phases.Add(copyPhase);
-                Log.Info($"d");
+                
                 return;
 
             }
 
 
         }
-
+        
         public static void incrementWait(NodeGeometry nodeGeometry)
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
@@ -680,6 +800,7 @@ namespace TrafficManager.API
 
                     bool breakLoop = false;
 
+                    
                     state.ProcessCurrentAndNextPathPosition(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], delegate (ref Vehicle vehState, ref PathUnit.Position curPos, ref PathUnit.Position nextPos)
                     {
                         if (!state.CheckValidity(ref vehState))
@@ -687,11 +808,31 @@ namespace TrafficManager.API
                             end.RequestCleanup();
                             return;
                         }
-
-                        Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
-
+                        
+                        //Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
+                        for (int i = 0; i< se.RightSegments.Length; i++)
+                        {
+                            if (se.RightSegments[i].Equals(nextPos.m_segment))
+                            {
+                                state.direction = VehicleState.Direction.Right;
+                            }
+                        }
+                        for (int i = 0; i < se.StraightSegments.Length; i++)
+                        {
+                            if (se.StraightSegments[i].Equals(nextPos.m_segment))
+                            {
+                                state.direction = VehicleState.Direction.Straight;
+                            }
+                        }
+                        for (int i = 0; i < se.LeftSegments.Length; i++)
+                        {
+                            if (se.LeftSegments[i].Equals(nextPos.m_segment))
+                            {
+                                state.direction = VehicleState.Direction.Left;
+                            }
+                        }
                     });
-
+                    
                     if (breakLoop)
                         break;
 

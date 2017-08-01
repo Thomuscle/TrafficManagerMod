@@ -40,6 +40,9 @@ namespace TrafficManager.TrafficLight
 
         public uint lastFlowWaitCalc = 0;
 
+        public ushort[] LightValues;
+        public ushort[] SegArray;
+
         private FlexibleTrafficLights flexibleNode;
 
         public IDictionary<ushort, CustomSegmentLights> CustomSegmentLights { get; private set; } = new TinyDictionary<ushort, CustomSegmentLights>();
@@ -91,13 +94,10 @@ namespace TrafficManager.TrafficLight
 
         public FlexibleTrafficLightsStep(FlexibleTrafficLights flexibleNode, ushort[] lightValues, ushort[] segIDs, bool makeRed = false)
         {
+            LightValues = lightValues;
+            SegArray = segIDs;
 
-            string s = "";
             
-            for (int q = 0; q < segIDs.Length; q++)
-            {
-                s = s + " " + segIDs[q].ToString();
-            }
            // Log.Info($"segIDs array: {s}");
 
 

@@ -87,7 +87,7 @@ namespace TrafficManager.Traffic {
 				ushort vehicleId = FirstRegisteredVehicleId;
 				while (vehicleId != 0) {
 					VehicleState state = vehStateManager._GetVehicleState(vehicleId);
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "doing sim step");
+                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "doing sim step");
                     bool removeVehicle = false;
 					if (!state.Valid) {
 						removeVehicle = true;
@@ -243,7 +243,7 @@ namespace TrafficManager.Traffic {
                 VehicleState v = vehStateManager._GetVehicleState(vehicleId);
                 
                 int wait = vehStateManager._GetVehicleState(vehicleId).WaitTime;
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " ID: " + vehicleId);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " vID: " + vehicleId + " segID: " + SegmentId);
                 vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
                 
 
