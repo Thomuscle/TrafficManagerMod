@@ -33,7 +33,7 @@ namespace TrafficManager.TrafficLight
         /// </summary>
         private uint? endTransitionStart;
 
-           
+        public bool blackListed = false;
 
         public int PreviousStepRefIndex = -1;
         public int NextStepRefIndex = -1;

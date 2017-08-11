@@ -57,6 +57,8 @@ namespace TrafficManager.Geometry {
 
 		public byte NumSegmentEnds { get; private set; } = 0;
 
+        public int numTicks = 0;
+
 		/// <summary>
 		/// Holds a list of observers which are being notified as soon as the managed node's geometry is updated (but not neccessarily modified)
 		/// </summary>

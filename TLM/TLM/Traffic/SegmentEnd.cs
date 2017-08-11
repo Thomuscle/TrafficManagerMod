@@ -38,6 +38,8 @@ namespace TrafficManager.Traffic {
 		/// </summary>
 		internal ushort FirstRegisteredVehicleId = 0;
 
+        public ushort LastSeenFirstVehicleId = 0;
+
 		private bool cleanupRequested = false;
 
 		/// <summary>

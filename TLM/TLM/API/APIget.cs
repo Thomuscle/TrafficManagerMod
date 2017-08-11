@@ -123,6 +123,15 @@ namespace TrafficManager.API
 
         public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
+           
+
+            nodeGeometry.numTicks++;
+
+            if(nodeGeometry.numTicks < 3)
+            {
+                return currentStep;
+            }
+
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
 
@@ -145,6 +154,11 @@ namespace TrafficManager.API
                 {
                     continue; // skip invalid segment
                 }
+
+
+
+
+                
 
                 ushort importance = 0;
                 ushort vehicleId = end.FirstRegisteredVehicleId;
@@ -238,15 +252,15 @@ namespace TrafficManager.API
             //    }
             //}
 
-            if (nodeGeometry.NodeId.Equals(20832))
-            {
-                for (int p = 0; p< queueLengths.Length; p++)
-                {
-                    Log.Info($"index: {p} queuelengths: {queueLengths[p]}");
+            //if (nodeGeometry.NodeId.Equals(20832))
+            //{
+            //    for (int p = 0; p< queueLengths.Length; p++)
+            //    {
+            //        Log.Info($"index: {p} queuelengths: {queueLengths[p]}");
 
-                }
-                //print queueLengths
-            }
+            //    }
+            //    //print queueLengths
+            //}
             //Log.Info($"queue len waiting set to max. ID: {nodeGeometry.NodeId}");
             Array.Sort(queueLengths, directionOrdering, Comparer.Default);
             Array.Reverse(directionOrdering);
@@ -274,22 +288,186 @@ namespace TrafficManager.API
                 }
             }
 
-            if (nodeGeometry.NodeId.Equals(20832))
+            //if (nodeGeometry.NodeId.Equals(20832))
+            //{
+            //    for (int p= 0; p < currentSubList[0].LightValues.Length; p++)
+            //    {
+            //        Log.Info($"current sub list light value index {p}: {currentSubList[0].LightValues[p]}");
+            //    }
+
+            //    for (int p = 0; p < directionOrdering.Length; p++)
+            //    {
+            //        Log.Info($"current ordering index {p}: {directionOrdering[p]}");
+            //    }
+
+            //}
+            if (!phases.IndexOf(currentSubList[0]).Equals(currentStep))
             {
-                for (int p= 0; p < currentSubList[0].LightValues.Length; p++)
+                nodeGeometry.numTicks = 0;
+            }
+            //Log.Info($"setting the step done ID: {nodeGeometry.NodeId}");
+            return phases.IndexOf(currentSubList[0]);
+        }
+
+        public static int getNextIndexOptimal(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+        {
+
+
+            nodeGeometry.numTicks++;
+
+            if (nodeGeometry.numTicks < 3)
+            {
+                return currentStep;
+            }
+
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+
+            ushort[] queueLengths = new ushort[phases[0].LightValues.Length];
+            int[] directionOrdering = new int[phases[0].LightValues.Length];
+            int[] longestWaiting = new int[phases[0].LightValues.Length];
+
+            for (int i = 0; i < directionOrdering.Length; i++)
+            {
+                directionOrdering[i] = i;
+            }
+            //Log.Info($"direction ordering initialised ID: {nodeGeometry.NodeId}");
+            foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+            {
+                if (se == null || se.OutgoingOneWay)
+                    continue;
+                //Log.Info($"passed outgoing one way ID: {nodeGeometry.NodeId}");
+                SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                if (end == null)
                 {
-                    Log.Info($"current sub list light value index {p}: {currentSubList[0].LightValues[p]}");
+                    continue; // skip invalid segment
                 }
 
-                for (int p = 0; p < directionOrdering.Length; p++)
+
+
+
+
+
+                ushort importance = 0;
+                ushort vehicleId = end.FirstRegisteredVehicleId;
+                while (vehicleId != 0)
                 {
-                    Log.Info($"current ordering index {p}: {directionOrdering[p]}");
+
+                    VehicleState v = vehStateMan._GetVehicleState(vehicleId);
+                    //hopefully this fixes, checks to see if vehicle is valid before using it
+                    if (v.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]))
+                    {
+
+                        VehicleState.Direction d = v.direction;
+                        int w = v.WaitTime;
+                        int index = 0;
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (phases[0].SegArray[i].Equals(0))
+                            {
+                                index--;
+                                //Log.Info($"No Segment: {index}");
+                                continue;
+                            }
+                            //Log.Info($"1st if. ID: {nodeGeometry.NodeId}");
+                            if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).NodeId().Equals(nodeGeometry.NodeId))
+                            {
+                                //Log.Info($"2nd if. ID: {nodeGeometry.NodeId}");
+                                if (SegmentEndGeometry.Get(phases[0].SegArray[i], true).OutgoingOneWay)
+                                {
+                                    //Log.Info($"3rd if. ID: {nodeGeometry.NodeId}");
+                                    index--;
+                                    //Log.Info($"Outgoing One Way: {index}");
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                //Log.Info($"4th if. ID: {nodeGeometry.NodeId}");
+                                if (SegmentEndGeometry.Get(phases[0].SegArray[i], false).OutgoingOneWay)
+                                {
+                                    //Log.Info($"5th if. ID: {nodeGeometry.NodeId}");
+                                    index--;
+                                    //Log.Info($"Outgoing One Way: {index}");
+                                    continue;
+                                }
+                            }
+
+                            if (phases[0].SegArray[i].Equals(se.SegmentId))
+                            {
+                                //Log.Info($"6th if. ID: {nodeGeometry.NodeId}");
+                                index = index + i;
+                                //Log.Info($"Final Index: {index}");
+                                break;
+                            }
+                        }
+
+                        if (index < 0)
+                        {
+                            index = 0;
+                        }
+
+                        //Log.Info($"queueLengths: {queueLengths.Length}, value: {index * 3 + (int)d} ");
+                        queueLengths[index * 3 + (int)d]++;
+                        //Log.Info($"incr queue length: {nodeGeometry.NodeId}");
+
+                        if (w > 25)
+                        {
+                            w = ushort.MaxValue - importance;
+                            importance++;
+                        }
+
+                        if (w > longestWaiting[index * 3 + (int)d])
+                        {
+                            longestWaiting[index * 3 + (int)d] = w;
+                            //TODO set the wait time to maximum minus vehicle position
+                        }
+                        //Log.Info($"longest waiting set ID: {nodeGeometry.NodeId}");
+
+
+                    }
+                    vehicleId = vehStateMan._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
                 }
 
             }
+            
+            int bestIndex = 0;
+            int bestTotal = 0;
+            int bestNumWaitingEx = 0;
+            foreach(FlexibleTrafficLightsStep f in phases)
+            {
+                int total = 0;
+                int numWaitingEx = 0;
+                for(int i=0; i<f.LightValues.Length; i++)
+                {
+                    if (f.LightValues[i].Equals(1))
+                    {
+                        if(longestWaiting[i] > 25)
+                        {
+                            numWaitingEx++;
+                        }
+                        total = total + queueLengths[i];
+                    }
+                }
 
-            //Log.Info($"setting the step done ID: {nodeGeometry.NodeId}");
-            return phases.IndexOf(currentSubList[0]);
+                if(numWaitingEx > bestNumWaitingEx)
+                {
+                    bestIndex = phases.IndexOf(f);
+                    bestTotal = total;
+                    bestNumWaitingEx = numWaitingEx;
+                }else if(numWaitingEx == bestNumWaitingEx)
+                {
+                    if (total > bestTotal)
+                    {
+                        bestIndex = phases.IndexOf(f);
+                        bestTotal = total;
+                    }
+                }
+                
+            }
+
+            return bestIndex;
         }
 
         public static List<Phase> buildOrderedPhases(NodeGeometry node, out ushort[] segArray)

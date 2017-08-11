@@ -152,7 +152,10 @@ namespace TrafficManager.UI.MainMenu {
                             if (end.FirstRegisteredVehicleId != 0)
                             {
                                 VehicleState state = vehStateMan._GetVehicleState(end.FirstRegisteredVehicleId);
-
+                            if (!state.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[end.FirstRegisteredVehicleId]))
+                            {
+                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId +" vehID: " + end.FirstRegisteredVehicleId + " type: " + state.VehicleType);
+                            }
                                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId);
 
                             }
