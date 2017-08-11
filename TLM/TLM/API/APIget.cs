@@ -146,6 +146,7 @@ namespace TrafficManager.API
                     continue; // skip invalid segment
                 }
 
+                ushort importance = 0;
                 ushort vehicleId = end.FirstRegisteredVehicleId;
                 while (vehicleId != 0)
                 {
@@ -208,6 +209,13 @@ namespace TrafficManager.API
                         //Log.Info($"queueLengths: {queueLengths.Length}, value: {index * 3 + (int)d} ");
                         queueLengths[index * 3 + (int)d]++;
                         //Log.Info($"incr queue length: {nodeGeometry.NodeId}");
+
+                        if (w > 25)
+                        {
+                            w = ushort.MaxValue - importance;
+                            importance++;
+                        }
+
                         if (w > longestWaiting[index * 3 + (int)d])
                         {
                             longestWaiting[index * 3 + (int)d] = w;
@@ -222,13 +230,13 @@ namespace TrafficManager.API
               
             }
             //TODO sort out blocked target segments
-            for (int i = 0; i < longestWaiting.Length; i++)
-            {
-                if(longestWaiting[i] > 25)
-                {
-                    queueLengths[i] = ushort.MaxValue;
-                }
-            }
+            //for (int i = 0; i < longestWaiting.Length; i++)
+            //{
+            //    if(longestWaiting[i] > 25)
+            //    {
+            //        queueLengths[i] = ushort.MaxValue;
+            //    }
+            //}
 
             if (nodeGeometry.NodeId.Equals(20832))
             {
