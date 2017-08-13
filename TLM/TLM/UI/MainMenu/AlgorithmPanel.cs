@@ -30,7 +30,7 @@ namespace TrafficManager.UI.MainMenu {
 		public const int TOP_BORDER = 25;
 		public const int BUTTON_SIZE = 30;
 		public const int MENU_WIDTH = 250;
-		public const int MENU_HEIGHT = 95;
+		public const int MENU_HEIGHT = 250;
 
 		public MenuButton[] Buttons { get; private set; }
 		public UILabel VersionLabel { get; private set; }
@@ -38,6 +38,7 @@ namespace TrafficManager.UI.MainMenu {
 		public UIDragHandle Drag { get; private set; }
         UIButton m_algoButton;
         UIButton m_testing;
+        UIButton m_recording;
         //private UILabel optionsLabel;
 
         public override void Start() {
@@ -64,6 +65,29 @@ namespace TrafficManager.UI.MainMenu {
             m_testing.relativePosition = new Vector3(15f, 60f);
             m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
                 dataRetrievalTesting(component, eventParam);
+            };
+
+            m_testing = this.AddUIComponent<UIButton>();
+            m_testing.text = "Record";
+            m_testing.normalBgSprite = "SubBarButtonBase";
+            m_testing.hoveredBgSprite = "SubBarButtonBaseHovered";
+            m_testing.pressedBgSprite = "SubBarButtonBasePressed";
+            m_testing.width = 220;
+            m_testing.height = 30;
+            m_testing.relativePosition = new Vector3(15f, 100f);
+            m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
+                if (m_testing.text.Equals("Record"))
+                {                    
+                    startRecording(component, eventParam);
+                    m_testing.text = "Stop";
+                }
+                else
+                {                    
+                    stopRecording(component, eventParam);
+                    m_testing.text = "Record";
+
+                }
+                
             };
             backgroundSprite = "GenericPanel";
 			color = new Color32(64, 64, 64, 240);
@@ -109,8 +133,105 @@ namespace TrafficManager.UI.MainMenu {
 			}
 			base.OnPositionChanged();
 		}
+        private static void startRecording(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            
+           
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+                var node = netManager.m_nodes.m_buffer[i];
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+                if (hasLights)
+                {
 
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
+                    foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+                    {
+                        if (se == null || se.OutgoingOneWay)
+                            continue;
 
+                        SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                        if (end == null)
+                        {
+                            continue;
+                        }
+
+                        end.isRecording = true;                       
+
+                    }
+
+                }
+
+            }
+        }
+        private static void stopRecording(UIComponent component, UIMouseEventParameter eventParam)
+        {
+                      
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;            
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+           
+            int totalWaitTime = 0;
+            int totalProcessed = 0;
+            double avgWaitTime=0.0;
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+                var node = netManager.m_nodes.m_buffer[i];
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+                if (hasLights)
+                {
+                    
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
+                    
+                    foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
+                    {
+                        if (se == null || se.OutgoingOneWay)
+                            continue;
+                        
+                        SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                        if (end == null)
+                        {
+                            continue; 
+                        }
+                        
+                        end.isRecording = false;
+                        
+                        totalWaitTime = totalWaitTime + end.totalWaitTime;
+                        totalProcessed = totalProcessed + end.carsProcessed;
+                        end.carsProcessed = 0;
+                        end.totalWaitTime = 0;
+
+                    }
+                    
+                }
+
+            }
+            if (totalProcessed != 0)
+            {
+                avgWaitTime = totalWaitTime / totalProcessed;
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Processed: " + totalProcessed);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total wait time: " + totalWaitTime);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average wait time: " + avgWaitTime);
+            }
+            else
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ERROR no cars processed");
+            }
+        }
         private static void dataRetrievalTesting(UIComponent component, UIMouseEventParameter eventParam)
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
@@ -123,6 +244,7 @@ namespace TrafficManager.UI.MainMenu {
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
                 var node = netManager.m_nodes.m_buffer[i];
+                
                 var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
 
                 if (hasLights)
@@ -215,6 +337,7 @@ namespace TrafficManager.UI.MainMenu {
                 if (hasLights)
                 {
                     NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    nodeGeometry.hasLights = true;
                     if (nodeGeometry.NumSegmentEnds >4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments>1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
                     {
                         continue;
@@ -278,7 +401,11 @@ namespace TrafficManager.UI.MainMenu {
 
 
                     }
-                    
+
+                }
+                else
+                {
+                    NodeGeometry.Get(i).hasLights = false;
                 }
 
             }

@@ -38,7 +38,7 @@ namespace TrafficManager.API
             }
             return lightNodes;
         }
-
+        public static bool isRecording = false;
         public static List<ushort> getSegments(NetNode node)
         {
             List<ushort> segments = new List<ushort>();
@@ -1000,6 +1000,11 @@ namespace TrafficManager.API
                             return;
                         }
                         state.WaitTime++;
+                        if (end.isRecording)
+                        {
+                            end.totalWaitTime++;
+                        }
+                        
                         //Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
                         for (int i = 0; i< se.RightSegments.Length; i++)
                         {

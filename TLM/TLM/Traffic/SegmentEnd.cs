@@ -37,9 +37,10 @@ namespace TrafficManager.Traffic {
 		/// Vehicles that are traversing or will traverse this segment
 		/// </summary>
 		internal ushort FirstRegisteredVehicleId = 0;
-
+        public bool isRecording = false;
         public ushort LastSeenFirstVehicleId = 0;
-
+        public int totalWaitTime=0;
+        public int carsProcessed = 0;
 		private bool cleanupRequested = false;
 
 		/// <summary>

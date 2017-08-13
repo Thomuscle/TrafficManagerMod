@@ -46,12 +46,15 @@ namespace TrafficManager.Geometry {
         public bool IsSimpleJunction {
 			get; private set;
 		} = false;
-
-		/// <summary>
-		/// Connected segment end geometries.
-		/// WARNING: Individual entries may be null
-		/// </summary>
-		public SegmentEndGeometry[] SegmentEndGeometries {
+        public bool hasLights
+        {
+            get; set;
+        } = false;
+        /// <summary>
+        /// Connected segment end geometries.
+        /// WARNING: Individual entries may be null
+        /// </summary>
+        public SegmentEndGeometry[] SegmentEndGeometries {
 			get; private set;
 		} = new SegmentEndGeometry[MAX_NUM_SEGMENTS];
 

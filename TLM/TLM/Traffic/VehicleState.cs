@@ -13,6 +13,9 @@ using TrafficManager.Manager;
 using TrafficManager.Custom.AI;
 using TrafficManager.State;
 using CSUtil.Commons;
+using TrafficManager.API;
+using TrafficManager.Geometry;
+using ColossalFramework.Plugins;
 
 namespace TrafficManager.Traffic {
 	public class VehicleState {
@@ -141,6 +144,7 @@ namespace TrafficManager.Traffic {
 			Valid = false;
 			TotalLength = 0f;
 			//VehicleType = ExtVehicleType.None;
+
 			WaitTime = 0;
 			JunctionTransitState = VehicleJunctionTransitState.None;
 			LastStateUpdate = 0;
@@ -518,11 +522,20 @@ namespace TrafficManager.Traffic {
 			SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(curPos.m_segment, IsTransitNodeCurStartNode(ref curPos, ref nextPos));
 			
 			if (CurrentSegmentEnd != end) {
-				if (CurrentSegmentEnd != null) {
-					Unlink();
+               
+                if (CurrentSegmentEnd != null) {
+                    
+                    Unlink();
 				}
+
+                //record data if is recording
+                if (end.isRecording)
+                {
+                    end.carsProcessed++;
+                }
                 
 				WaitTime = 0;
+
 				if (end != null) {
 #if DEBUGVSTATE
 					if (GlobalConfig.Instance.DebugSwitches[9])

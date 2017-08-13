@@ -239,9 +239,11 @@ namespace TrafficManager.Manager {
 										Log._Debug($"Vehicle {vehicleId}: Setting JunctionTransitState to LEAVE (RedToGreen)");
 #endif
 									if (vehicleState != null)
+
 										vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
-								}
-								break;
+                                        
+                                }
+                                break;
 							case RoadBaseAI.TrafficLightState.Red:
 								stopCar = true;
 								break;
@@ -254,7 +256,15 @@ namespace TrafficManager.Manager {
 										Log._Debug($"Vehicle {vehicleId}: Setting JunctionTransitState to LEAVE (GreenToRed)");
 #endif
 									vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
-								}
+                                    
+                                    //if (vehicleState.CurrentSegmentEnd.isRecording)
+                                    //{
+                                    //    Log.Info($"vehicle wait time after unlink: {vehicleState.WaitTime}");
+                                    //    vehicleState.CurrentSegmentEnd.totalWaitTime += vehicleState.WaitTime;
+
+                                    //    vehicleState.CurrentSegmentEnd.carsProcessed++;
+                                    //}
+                                }
 								break;
 						}
 
@@ -364,7 +374,8 @@ namespace TrafficManager.Manager {
 													return false;
 												}
 											} else {
-												vehicleState.WaitTime = 0;
+                                                
+                                                vehicleState.WaitTime = 0;
 												maxSpeed = 0f;
 												return false;
 											}
