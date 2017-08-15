@@ -31,8 +31,12 @@ namespace TrafficManager.Traffic {
 				junctionTransitState = value;
 			}
 		}
-
-		public uint LastStateUpdate {
+        
+        public int JourneyTime
+        {
+            get; set;
+        }
+        public uint LastStateUpdate {
 			get; private set;
 		}
 
@@ -50,11 +54,17 @@ namespace TrafficManager.Traffic {
             Left = 2
         }
 		private ushort VehicleId;
+        public ushort getID()
+        {
+            return VehicleId;
+        }
 		public int WaitTime = 0;
         public Direction direction = Direction.Right;
         public float ReduceSqrSpeedByValueToYield;
 		private bool valid = false;
-
+        public bool alreadyParked = false;
+        public bool alreadyEnRoute = false;
+        public bool registered = false;
 		public bool Valid {
 			get {
 				if ((Singleton<VehicleManager>.instance.m_vehicles.m_buffer[VehicleId].m_flags & Vehicle.Flags.Created) == 0) {
@@ -522,26 +532,27 @@ namespace TrafficManager.Traffic {
 			SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(curPos.m_segment, IsTransitNodeCurStartNode(ref curPos, ref nextPos));
 			
 			if (CurrentSegmentEnd != end) {
-               
+                
                 if (CurrentSegmentEnd != null) {
                     
                     Unlink();
 				}
 
                 //record data if is recording
-                if (end.isRecording)
-                {
-                    end.carsProcessed++;
-                }
+                
                 
 				WaitTime = 0;
 
 				if (end != null) {
+                    if (end.isRecording)
+                    {
+                        end.carsProcessed++;
+                    }
 #if DEBUGVSTATE
 					if (GlobalConfig.Instance.DebugSwitches[9])
 						Log.Warning($"VehicleState.UpdatePosition: Linking vehicle {VehicleId} with segment end {end.SegmentId} @ {end.StartNode} ({end.NodeId}). Current position: Seg. {curPos.m_segment}, lane {curPos.m_lane}, offset {curPos.m_offset} / Next position: Seg. {nextPos.m_segment}, lane {nextPos.m_lane}, offset {nextPos.m_offset}");
 #endif
-					Link(end);
+                    Link(end);
 					JunctionTransitState = VehicleJunctionTransitState.Enter;
 				} else {
 					JunctionTransitState = VehicleJunctionTransitState.None;

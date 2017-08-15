@@ -823,6 +823,7 @@ namespace TrafficManager.UI {
 			VehicleStateManager vehStateManager = VehicleStateManager.Instance;
 			for (int i = 1; i < vehicles.m_size; ++i) {
 				Vehicle vehicle = vehicles.m_buffer[i];
+               
 				if (vehicle.m_flags == 0) // node is unused
 					continue;
 

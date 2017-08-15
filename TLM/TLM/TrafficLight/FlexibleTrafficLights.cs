@@ -416,7 +416,10 @@ namespace TrafficManager.TrafficLight
                 //int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId));
                 int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId),Steps);
                 API.APIget.incrementWait(NodeGeometry.Get(NodeId));
-
+                if (API.APIget.isRecording)
+                {
+                    API.APIget.journeyTimeUpdate();
+                }
                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 
                 //TODO function that returns the next step index (current one or another index) 

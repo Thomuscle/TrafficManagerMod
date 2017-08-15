@@ -947,7 +947,98 @@ namespace TrafficManager.API
 
 
         }
-        
+        public static long journeysProcessed = 0;
+        public static long totalVehicleJourneyTime = 0;
+        public static bool firstIteration = true;
+        public static void journeyTimeUpdate()
+        {
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+            
+            foreach (VehicleState state in vehStateMan.getAllVehicles())
+            {
+
+
+                //bool isParked = true;
+                //ushort currentVehId = state.getID();
+                //try//car is parked
+                //{
+                //    VehicleParked vp = Singleton<VehicleManager>.instance.m_parkedVehicles.m_buffer[currentVehId];
+                //    Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
+                //if (state.CheckValidity(ref v)){
+                //    if (v.Info.Equals(vp.Info))
+                //    {
+                //        same++;
+                //    }
+                //    else
+                //    {
+                //        notSame++;
+                //    }
+                //}
+
+
+
+                //}
+                //catch (System.IndexOutOfRangeException e)//car is not parked
+                //{
+                //Log.Info($"did this");
+                //    state.alreadyParked = false;
+                //    isParked = false;
+                //    state.JourneyTime++;
+                //}
+
+
+                bool isParked = true;
+                ushort currentVehId = state.getID();
+                Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
+                if(!state.CheckValidity(ref v))
+                {
+                    continue;
+                }
+                bool isParking = ((v.m_flags & (Vehicle.Flags.Parking)) != 0);
+                if (!isParking && firstIteration)
+                {
+                    state.alreadyEnRoute = true;
+                }
+                if (!isParking && !state.alreadyEnRoute)
+                {
+                    //Log.Info($"got here (not parked)");
+                    state.alreadyParked = false;
+                    state.JourneyTime++;
+                }
+
+                
+                //Log.Info($"got here");
+                if(firstIteration && isParking)
+                {
+                    state.alreadyParked = true;
+                }
+                if (state.alreadyParked == false)
+                {
+
+                    if (isParking && !state.alreadyEnRoute)
+                    {
+
+                        //Log.Info($"got here (parked)");
+                        
+                        journeysProcessed++;
+                        totalVehicleJourneyTime += state.JourneyTime;
+                        state.JourneyTime = 0;
+                        state.alreadyParked = true;
+                    }
+                }
+                if (isParking && state.alreadyEnRoute && !firstIteration)
+                {
+                    state.alreadyEnRoute = false;
+                    state.alreadyParked = true;
+                }
+                if (isParking)
+                {
+                    Log.Info($"v id: {state.getID()}");
+                }
+            }
+           
+            firstIteration = false;
+        }
         public static void incrementWait(NodeGeometry nodeGeometry)
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
