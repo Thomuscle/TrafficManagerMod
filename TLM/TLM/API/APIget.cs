@@ -121,6 +121,20 @@ namespace TrafficManager.API
 
         }
 
+        public static int getNextIndexRR(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+        {
+            nodeGeometry.numTicks++;
+
+            if (nodeGeometry.numTicks < 5)
+            {
+                return currentStep;
+            }
+            
+            nodeGeometry.numTicks = 0;
+            
+            return (currentStep + 1) % noOfSteps;
+        }
+
         public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
            
@@ -481,6 +495,44 @@ namespace TrafficManager.API
             phaseList = phaseBuilder(segArray, numSegs, node);
 
             return phaseList;
+
+        }
+
+        public static List<Phase> buildPhasesNoRedundancy(NodeGeometry node, out ushort[] segArray)
+        {
+            int numSegs;
+            segArray = getOrderedSegments(node, out numSegs);
+
+
+            List<Phase> phaseList = new List<Phase>();
+
+            phaseList = phaseBuilder(segArray, numSegs, node);
+
+            List<Phase> newPhaseList = new List<Phase>();
+
+            for (int i=0; i<phaseList.Count; i++)
+            {
+                bool isSubSet = false;
+                for (int j = 0; j < phaseList.Count; j++)
+                {
+                    if(j == i)
+                    {
+                        continue;
+                    }
+
+                    if(phaseList[i].compare(phaseList[j], segArray, node).Equals(-1))
+                    {
+                        isSubSet = true;
+                    }
+                }
+
+                if (!isSubSet)
+                {
+                    newPhaseList.Add(phaseList[i]);
+                }
+            }
+
+            return newPhaseList;
 
         }
 

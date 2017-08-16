@@ -41,6 +41,41 @@ namespace TrafficManager.API
             //Log.Info($"ADDING SEGMENT AND DIRECTION TO PHASE: {seg} - {dir}");
         }
 
+        public int compare(Phase phase, ushort[] segArray, NodeGeometry node)
+        {
+            ushort[] rslArray1 = getRslArray(segArray, node);
+            ushort[] rslArray2 = phase.getRslArray(segArray, node);
+
+            bool rsl1notSuper = false;
+            bool rsl2notSuper = false;
+
+            for (int i = 0; i<rslArray1.Length; i++)
+            {
+                if (rslArray1[i].Equals(rslArray2[i]))
+                {
+                    continue;
+
+                } else if (rslArray1[i].Equals(0))
+                {
+                    rsl1notSuper = true;
+                } else if (rslArray2[i].Equals(0))
+                {
+                    rsl2notSuper = true;
+                }
+            }
+
+            if(rsl1notSuper && !rsl2notSuper)
+            {
+                return -1;
+            }else if (!rsl1notSuper)
+            {
+                return 1;
+            }else
+            {
+                return 1;
+            }
+        }
+
         public void copy(Phase phase, int numSegs)
         {
             for(int i = 0; i < numSegs; i++)

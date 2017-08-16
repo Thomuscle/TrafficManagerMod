@@ -35,7 +35,7 @@ namespace TrafficManager.TrafficLight
 
         public List<FlexibleTrafficLightsStep> Steps = new List<FlexibleTrafficLightsStep>();
         public int CurrentStep = 0;
-
+        public int SelectedAlgorithm = 0;
         public List<ushort> NodeGroup;
         private bool testMode = false;
 
@@ -80,6 +80,19 @@ namespace TrafficManager.TrafficLight
             UpdateSegmentEnds();
             SubscribeToNodeGeometry();
 
+            started = false;
+        }
+
+        public FlexibleTrafficLights(ushort nodeId, IEnumerable<ushort> nodeGroup, int selectedAlgorithm)
+        {
+            this.NodeId = nodeId;
+            NodeGroup = new List<ushort>(nodeGroup);
+            masterNodeId = NodeGroup[0];
+
+            UpdateDirections(NodeGeometry.Get(nodeId));
+            UpdateSegmentEnds();
+            SubscribeToNodeGeometry();
+            SelectedAlgorithm = selectedAlgorithm;
             started = false;
         }
 
@@ -409,18 +422,24 @@ namespace TrafficManager.TrafficLight
             
             //Log.Info($"outside if <0");
             if (Steps[CurrentStep].NextStepRefIndex < 0)            {
-                // Log.Info($"inside");
-                //TODO logic for determining the next step
-                //int nextStepIndex = (CurrentStep + 1) % NumSteps();
-                //Log.Info($"node: {NodeId}");
-                //int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId));
-                int nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId),Steps);
+                int nextStepIndex = 0;
+                if (SelectedAlgorithm == 0)
+                {
+                     nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                }else if (SelectedAlgorithm == 1)
+                {
+                     nextStepIndex = API.APIget.getNextIndexOptimal((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                }else if (SelectedAlgorithm == 2)
+                {
+                    nextStepIndex = API.APIget.getNextIndexRR((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                }
+                else
+                {
+                    nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                }
+                
                 API.APIget.incrementWait(NodeGeometry.Get(NodeId));
 
-                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
-
-                //TODO function that returns the next step index (current one or another index) 
-                //  int nextStepIndex = APIfuncGetNExtStepIndex()
 
                 if (nextStepIndex == CurrentStep)
                 {

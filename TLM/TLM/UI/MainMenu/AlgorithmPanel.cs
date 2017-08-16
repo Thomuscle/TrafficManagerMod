@@ -37,6 +37,8 @@ namespace TrafficManager.UI.MainMenu {
 
 		public UIDragHandle Drag { get; private set; }
         UIButton m_algoButton;
+        UIButton m_algoButton2;
+        UIButton m_algoButton3;
         UIButton m_testing;
         UIButton m_recording;
         //private UILabel optionsLabel;
@@ -45,7 +47,7 @@ namespace TrafficManager.UI.MainMenu {
             this.relativePosition = new Vector3(15f, 120f);
             isVisible = false;
             m_algoButton = this.AddUIComponent<UIButton>();
-            m_algoButton.text = "Toggle Round Robin";
+            m_algoButton.text = "Toggle Moody Algorithm";
             m_algoButton.normalBgSprite = "SubBarButtonBase";
             m_algoButton.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_algoButton.pressedBgSprite = "SubBarButtonBasePressed";
@@ -53,7 +55,29 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton.height = 30;
             m_algoButton.relativePosition = new Vector3(15f, 20f);
             m_algoButton.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLights(component, eventParam);
+                clickToggleAllTrafficLightsMoody(component, eventParam);
+            };
+            m_algoButton2 = this.AddUIComponent<UIButton>();
+            m_algoButton2.text = "Toggle Optimal Algorithm";
+            m_algoButton2.normalBgSprite = "SubBarButtonBase";
+            m_algoButton2.hoveredBgSprite = "SubBarButtonBaseHovered";
+            m_algoButton2.pressedBgSprite = "SubBarButtonBasePressed";
+            m_algoButton2.width = 220;
+            m_algoButton2.height = 30;
+            m_algoButton2.relativePosition = new Vector3(15f, 60f);
+            m_algoButton2.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
+                clickToggleAllTrafficLightsMoodyOptimal(component, eventParam);
+            };
+            m_algoButton3 = this.AddUIComponent<UIButton>();
+            m_algoButton3.text = "Toggle Round Robin";
+            m_algoButton3.normalBgSprite = "SubBarButtonBase";
+            m_algoButton3.hoveredBgSprite = "SubBarButtonBaseHovered";
+            m_algoButton3.pressedBgSprite = "SubBarButtonBasePressed";
+            m_algoButton3.width = 220;
+            m_algoButton3.height = 30;
+            m_algoButton3.relativePosition = new Vector3(15f, 100f);
+            m_algoButton3.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
+                clickToggleAllTrafficLightsRR(component, eventParam);
             };
             m_testing = this.AddUIComponent<UIButton>();
             m_testing.text = "Testing";
@@ -62,7 +86,7 @@ namespace TrafficManager.UI.MainMenu {
             m_testing.pressedBgSprite = "SubBarButtonBasePressed";
             m_testing.width = 220;
             m_testing.height = 30;
-            m_testing.relativePosition = new Vector3(15f, 60f);
+            m_testing.relativePosition = new Vector3(15f, 140f);
             m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
                 dataRetrievalTesting(component, eventParam);
             };
@@ -74,7 +98,7 @@ namespace TrafficManager.UI.MainMenu {
             m_testing.pressedBgSprite = "SubBarButtonBasePressed";
             m_testing.width = 220;
             m_testing.height = 30;
-            m_testing.relativePosition = new Vector3(15f, 100f);
+            m_testing.relativePosition = new Vector3(15f, 180f);
             m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
                 if (m_testing.text.Equals("Record"))
                 {                    
@@ -316,7 +340,7 @@ namespace TrafficManager.UI.MainMenu {
             }
         }
 
-        private static void clickToggleAllTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
+        private static void clickToggleAllTrafficLightsMoody(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
@@ -355,7 +379,7 @@ namespace TrafficManager.UI.MainMenu {
                         
                         //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
 
-                        sim.SetupFlexibleTrafficLight(nodeGroup);
+                        sim.SetupFlexibleTrafficLight(nodeGroup, 0);
 
                        
                         //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
@@ -411,6 +435,203 @@ namespace TrafficManager.UI.MainMenu {
             }
             _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
         }
+
+        private static void clickToggleAllTrafficLightsRR(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
+            RoadBaseAI.TrafficLightState vLightState;
+            RoadBaseAI.TrafficLightState pLightState;
+            bool vehicles;
+            bool pedestrians;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+
+                var node = netManager.m_nodes.m_buffer[i];
+
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+
+                if (hasLights)
+                {
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    nodeGeometry.hasLights = true;
+                    if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
+                    TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
+                    if (_areAllTrafficLightsRed)
+                    {
+                        sim.DestroyFlexibleTrafficLight();
+                    }
+                    else
+                    {
+
+                        List<ushort> nodeGroup = new List<ushort>();
+                        nodeGroup.Add(i);
+
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
+
+                        sim.SetupFlexibleTrafficLight(nodeGroup, 2);
+
+
+                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+
+                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
+                        ushort[] segArray;
+                        List<Phase> phases = APIget.buildPhasesNoRedundancy(nodeGeometry, out segArray);
+
+
+                        foreach (Phase phase in phases)
+                        {
+
+                            ushort[] rslArray = phase.getRslArray(segArray, nodeGeometry);
+
+
+                            sim.FlexibleLight.AddStep(rslArray, segArray);
+
+                        }
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+                            var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode);
+
+                            foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
+                            {
+                                CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
+                                segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
+                                //if (segmentlight.segmentid.equals(28062))
+                                //{
+                                //    log.info($"here");
+                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
+                                //}
+                                sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
+                            }
+
+                        }
+                        sim.FlexibleLight.Start();
+                        Log.Info($"started");
+
+
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
+
+
+                    }
+
+                }
+                else
+                {
+                    NodeGeometry.Get(i).hasLights = false;
+                }
+
+            }
+            _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
+        }
+
+        private static void clickToggleAllTrafficLightsMoodyOptimal(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            var netManager = Singleton<NetManager>.instance;
+            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
+            RoadBaseAI.TrafficLightState vLightState;
+            RoadBaseAI.TrafficLightState pLightState;
+            bool vehicles;
+            bool pedestrians;
+            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
+            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
+            {
+
+                var node = netManager.m_nodes.m_buffer[i];
+
+                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
+
+                if (hasLights)
+                {
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    nodeGeometry.hasLights = true;
+                    if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
+                    TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
+                    if (_areAllTrafficLightsRed)
+                    {
+                        sim.DestroyFlexibleTrafficLight();
+                    }
+                    else
+                    {
+
+                        List<ushort> nodeGroup = new List<ushort>();
+                        nodeGroup.Add(i);
+
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
+
+                        sim.SetupFlexibleTrafficLight(nodeGroup, 1);
+
+
+                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+
+                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
+                        ushort[] segArray;
+                        List<Phase> phases = APIget.buildOrderedPhases(nodeGeometry, out segArray);
+
+
+                        foreach (Phase phase in phases)
+                        {
+
+                            ushort[] rslArray = phase.getRslArray(segArray, nodeGeometry);
+
+
+                            sim.FlexibleLight.AddStep(rslArray, segArray);
+
+                        }
+                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+                        {
+                            if (end == null || end.OutgoingOneWay)
+                                continue;
+                            var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode);
+
+                            foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
+                            {
+                                CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
+                                segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
+                                //if (segmentlight.segmentid.equals(28062))
+                                //{
+                                //    log.info($"here");
+                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
+                                //}
+                                sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
+                            }
+
+                        }
+                        sim.FlexibleLight.Start();
+                        Log.Info($"started");
+
+
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
+
+
+                    }
+
+                }
+                else
+                {
+                    NodeGeometry.Get(i).hasLights = false;
+                }
+
+            }
+            _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
+        }
+
+
+
+
+
         private static void clickToggleAllFlexibleTimedTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;

@@ -105,6 +105,15 @@ namespace TrafficManager.TrafficLight {
 		}
 
         //Sets up FlexibleLight
+        public void SetupFlexibleTrafficLight(List<ushort> nodeGroup, int selectedAlgorithm)
+        {
+            if (IsManualLight())
+                DestroyManualTrafficLight();
+
+            FlexibleLight = new FlexibleTrafficLights(NodeId, nodeGroup, selectedAlgorithm);
+            CustomSegmentLightsManager.Instance.AddNodeLights(NodeId);
+        }
+
         public void SetupFlexibleTrafficLight(List<ushort> nodeGroup)
         {
             if (IsManualLight())
