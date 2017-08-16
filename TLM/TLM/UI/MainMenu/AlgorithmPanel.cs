@@ -159,8 +159,8 @@ namespace TrafficManager.UI.MainMenu {
 		}
         private static void startRecording(UIComponent component, UIMouseEventParameter eventParam)
         {
-            
-           
+
+            APIget.firstIteration = true;
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
@@ -189,8 +189,8 @@ namespace TrafficManager.UI.MainMenu {
                             continue;
                         }
 
-                        end.isRecording = true;                       
-
+                        end.isRecording = true;
+                        APIget.isRecording = true;
                     }
 
                 }
@@ -233,7 +233,7 @@ namespace TrafficManager.UI.MainMenu {
                         }
                         
                         end.isRecording = false;
-                        
+                        APIget.isRecording = false;
                         totalWaitTime = totalWaitTime + end.totalWaitTime;
                         totalProcessed = totalProcessed + end.carsProcessed;
                         end.carsProcessed = 0;
@@ -254,6 +254,20 @@ namespace TrafficManager.UI.MainMenu {
             else
             {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ERROR no cars processed");
+            }
+            if(APIget.journeysProcessed != 0)
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Journeys: " + APIget.journeysProcessed);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Vehicle Journey Time: " + APIget.totalVehicleJourneyTime);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average Journey Time: " + APIget.totalVehicleJourneyTime/ APIget.journeysProcessed);
+                APIget.journeysProcessed = 0;
+                APIget.totalVehicleJourneyTime = 0;
+            }
+            else
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ERROR no journeys processed");
+                
+                APIget.totalVehicleJourneyTime = 0;
             }
         }
         private static void dataRetrievalTesting(UIComponent component, UIMouseEventParameter eventParam)

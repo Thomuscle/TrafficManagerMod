@@ -440,7 +440,14 @@ namespace TrafficManager.TrafficLight
                 
                 API.APIget.incrementWait(NodeGeometry.Get(NodeId));
 
+                if (API.APIget.isRecording)
+                {
+                    API.APIget.journeyTimeUpdate();
+                }
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 
+                //TODO function that returns the next step index (current one or another index) 
+                //  int nextStepIndex = APIfuncGetNExtStepIndex()
                 if (nextStepIndex == CurrentStep)
                 {
                     //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Restarting Current Step ");

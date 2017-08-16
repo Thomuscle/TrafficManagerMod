@@ -58,6 +58,11 @@ namespace TrafficManager.Manager {
 			}
 		}
 
+        public VehicleState[] getAllVehicles()
+        {
+            return VehicleStates;
+        }
+
 		/// <summary>
 		/// Determines if the given vehicle is driven by a reckless driver
 		/// </summary>
