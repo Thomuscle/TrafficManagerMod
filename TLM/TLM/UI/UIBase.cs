@@ -13,10 +13,12 @@ namespace TrafficManager.UI {
 
 		public UIMainMenuButton MainMenuButton { get; private set; }
 		public MainMenuPanel MainMenu { get; private set; }
-        public AlgorithmPanel Algorithm { get; private set; }
+        public static AlgorithmPanel Algorithm { get; private set; }
+        
 #if DEBUG
         public DebugMenuPanel DebugMenu { get; private set; }
-#endif
+#endif  
+        
 		public static TrafficManagerTool GetTrafficManagerTool(bool createIfRequired=true) {
 			if (tool == null && createIfRequired) {
 				Log.Info("Initializing traffic manager tool...");
@@ -27,6 +29,11 @@ namespace TrafficManager.UI {
 
 			return tool;
 		}
+        
+        public static void updateRecordTime()
+        {
+            Algorithm.updateRecordingTime();
+        }
 		private static TrafficManagerTool tool = null;
 		public static TrafficManagerMode ToolMode { get; set; }
 

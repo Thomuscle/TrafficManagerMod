@@ -390,6 +390,7 @@ namespace TrafficManager.TrafficLight
 
         //entry point into the light simulation called from base(kind of)
         public void SimulationStep() {
+           
             if (!IsStarted())
             {
                 return;
@@ -440,10 +441,7 @@ namespace TrafficManager.TrafficLight
                 
                 API.APIget.incrementWait(NodeGeometry.Get(NodeId));
 
-                if (API.APIget.isRecording)
-                {
-                    API.APIget.journeyTimeUpdate();
-                }
+                
                 //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Next Step Index: " + nextStepIndex.ToString());
 
                 //TODO function that returns the next step index (current one or another index) 

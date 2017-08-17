@@ -9,6 +9,7 @@ using TrafficManager.TrafficLight;
 using TrafficManager.Traffic;
 using System.Linq;
 using CSUtil.Commons;
+using TrafficManager.UI;
 
 namespace TrafficManager.Manager {
 	public class TrafficLightSimulationManager : AbstractNodeGeometryObservingManager, ICustomDataManager<List<Configuration.TimedTrafficLights>> {
@@ -40,9 +41,10 @@ namespace TrafficManager.Manager {
 			int frame = (int)(Singleton<SimulationManager>.instance.m_currentFrameIndex & (SIM_MOD - 1));
 			int minIndex = frame * (NetManager.MAX_NODE_COUNT / SIM_MOD);
 			int maxIndex = (frame + 1) * (NetManager.MAX_NODE_COUNT / SIM_MOD) - 1;
-
+            bool firstCycle = true;
 			for (int nodeId = minIndex; nodeId <= maxIndex; ++nodeId) {
 				try {
+                    
 					TrafficLightSimulation nodeSim = TrafficLightSimulations[nodeId];
 
 					if (nodeSim != null && nodeSim.IsTimedLightActive()) {
@@ -51,13 +53,23 @@ namespace TrafficManager.Manager {
 					}
                     if (nodeSim != null && nodeSim.IsFlexibleLightActive())
                     {
+                        if (firstCycle && API.APIget.isRecording)
+                        {
+                            API.APIget.recordingTime++;
+                            API.APIget.journeyTimeUpdate();
+                            UIBase.updateRecordTime();
+
+                            firstCycle = false;
+                        }
                         nodeSim.FlexibleLight.SimulationStep();
                     }
 				} catch (Exception ex) {
 					Log.Warning($"Error occured while simulating traffic light @ node {nodeId}: {ex.ToString()}");
 				}
 			}
-		}
+            
+            
+        }
 
 		/// <summary>
 		/// Adds a traffic light simulation to the node with the given id

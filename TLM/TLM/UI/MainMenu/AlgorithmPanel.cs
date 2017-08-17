@@ -91,24 +91,26 @@ namespace TrafficManager.UI.MainMenu {
                 dataRetrievalTesting(component, eventParam);
             };
 
-            m_testing = this.AddUIComponent<UIButton>();
-            m_testing.text = "Record";
-            m_testing.normalBgSprite = "SubBarButtonBase";
-            m_testing.hoveredBgSprite = "SubBarButtonBaseHovered";
-            m_testing.pressedBgSprite = "SubBarButtonBasePressed";
-            m_testing.width = 220;
-            m_testing.height = 30;
-            m_testing.relativePosition = new Vector3(15f, 180f);
-            m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                if (m_testing.text.Equals("Record"))
+            m_recording = this.AddUIComponent<UIButton>();
+            m_recording.text = "Record";
+
+             
+            m_recording.normalBgSprite = "SubBarButtonBase";
+            m_recording.hoveredBgSprite = "SubBarButtonBaseHovered";
+            m_recording.pressedBgSprite = "SubBarButtonBasePressed";
+            m_recording.width = 220;
+            m_recording.height = 30;
+            m_recording.relativePosition = new Vector3(15f, 180f);
+            m_recording.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
+                if (m_recording.text.Equals("Record"))
                 {                    
                     startRecording(component, eventParam);
-                    m_testing.text = "Stop";
+                    m_recording.text = "Stop";
                 }
                 else
                 {                    
                     stopRecording(component, eventParam);
-                    m_testing.text = "Record";
+                    m_recording.text = "Record";
 
                 }
                 
@@ -157,6 +159,11 @@ namespace TrafficManager.UI.MainMenu {
 			}
 			base.OnPositionChanged();
 		}
+        public void updateRecordingTime()
+        {
+            m_recording.text = "Stop("+(APIget.recordingTime.ToString())+")";
+        }
+        public static int recording = 0;
         private static void startRecording(UIComponent component, UIMouseEventParameter eventParam)
         {
 
@@ -244,6 +251,7 @@ namespace TrafficManager.UI.MainMenu {
                 }
 
             }
+
             if (totalProcessed != 0)
             {
                 avgWaitTime = totalWaitTime / totalProcessed;
@@ -255,13 +263,16 @@ namespace TrafficManager.UI.MainMenu {
             {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ERROR no cars processed");
             }
+            APIget.cleanUpJourneyData();
             if(APIget.journeysProcessed != 0)
             {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Journeys: " + APIget.journeysProcessed);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Vehicle Journey Time: " + APIget.totalVehicleJourneyTime);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average Journey Time: " + APIget.totalVehicleJourneyTime/ APIget.journeysProcessed);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Recording Time: " + APIget.recordingTime);
                 APIget.journeysProcessed = 0;
                 APIget.totalVehicleJourneyTime = 0;
+                APIget.recordingTime = 0;
             }
             else
             {

@@ -14,6 +14,7 @@ using ColossalFramework.Plugins;
 using System.Collections;
 using TrafficManager.Traffic;
 using TrafficManager.TrafficLight;
+using TrafficManager.UI.MainMenu;
 
 namespace TrafficManager.API
 {
@@ -1002,6 +1003,8 @@ namespace TrafficManager.API
         public static long journeysProcessed = 0;
         public static long totalVehicleJourneyTime = 0;
         public static bool firstIteration = true;
+        public static int recordingTime = 0;
+        
         public static void journeyTimeUpdate()
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
@@ -1009,36 +1012,7 @@ namespace TrafficManager.API
             foreach (VehicleState state in vehStateMan.getAllVehicles())
             {
 
-
-                //bool isParked = true;
-                //ushort currentVehId = state.getID();
-                //try//car is parked
-                //{
-                //    VehicleParked vp = Singleton<VehicleManager>.instance.m_parkedVehicles.m_buffer[currentVehId];
-                //    Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
-                //if (state.CheckValidity(ref v)){
-                //    if (v.Info.Equals(vp.Info))
-                //    {
-                //        same++;
-                //    }
-                //    else
-                //    {
-                //        notSame++;
-                //    }
-                //}
-
-
-
-                //}
-                //catch (System.IndexOutOfRangeException e)//car is not parked
-                //{
-                //Log.Info($"did this");
-                //    state.alreadyParked = false;
-                //    isParked = false;
-                //    state.JourneyTime++;
-                //}
-
-
+                
                 bool isParked = true;
                 ushort currentVehId = state.getID();
                 Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
@@ -1047,20 +1021,20 @@ namespace TrafficManager.API
                     continue;
                 }
                 bool isParking = ((v.m_flags & (Vehicle.Flags.Parking)) != 0);
-                if (!isParking && firstIteration)
+                if (!isParking && firstIteration && (v.GetSmoothVelocity(currentVehId) != Vector3.zero))
                 {
                     state.alreadyEnRoute = true;
                 }
-                if (!isParking && !state.alreadyEnRoute)
+
+                if (!isParking && !state.alreadyEnRoute && (v.GetSmoothVelocity(currentVehId) != Vector3.zero))
                 {
                     //Log.Info($"got here (not parked)");
                     state.alreadyParked = false;
                     state.JourneyTime++;
                 }
 
-                
                 //Log.Info($"got here");
-                if(firstIteration && isParking)
+                if (firstIteration && isParking)
                 {
                     state.alreadyParked = true;
                 }
@@ -1083,13 +1057,25 @@ namespace TrafficManager.API
                     state.alreadyEnRoute = false;
                     state.alreadyParked = true;
                 }
-                if (isParking)
-                {
-                    Log.Info($"v id: {state.getID()}");
-                }
+                
+                //if (isParking)
+                //{
+                //    //Log.Info($"v id: {state.getID()}");
+                //}
             }
            
             firstIteration = false;
+        }
+        public static void cleanUpJourneyData()
+        {
+            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
+
+            foreach (VehicleState state in vehStateMan.getAllVehicles())
+            {
+                state.alreadyEnRoute = false;
+                state.alreadyParked = false;
+                state.JourneyTime = 0;
+            }
         }
         public static void incrementWait(NodeGeometry nodeGeometry)
         {

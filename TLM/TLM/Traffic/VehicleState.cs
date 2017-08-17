@@ -64,7 +64,7 @@ namespace TrafficManager.Traffic {
 		private bool valid = false;
         public bool alreadyParked = false;
         public bool alreadyEnRoute = false;
-        public bool registered = false;
+        
 		public bool Valid {
 			get {
 				if ((Singleton<VehicleManager>.instance.m_vehicles.m_buffer[VehicleId].m_flags & Vehicle.Flags.Created) == 0) {
