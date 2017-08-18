@@ -39,6 +39,7 @@ namespace TrafficManager.API
             }
             return lightNodes;
         }
+        public static bool isFirstCycle = true;
         public static bool isRecording = false;
         public static List<ushort> getSegments(NetNode node)
         {

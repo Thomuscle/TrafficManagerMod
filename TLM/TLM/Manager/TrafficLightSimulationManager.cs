@@ -41,8 +41,9 @@ namespace TrafficManager.Manager {
 			int frame = (int)(Singleton<SimulationManager>.instance.m_currentFrameIndex & (SIM_MOD - 1));
 			int minIndex = frame * (NetManager.MAX_NODE_COUNT / SIM_MOD);
 			int maxIndex = (frame + 1) * (NetManager.MAX_NODE_COUNT / SIM_MOD) - 1;
-            bool firstCycle = true;
+           
 			for (int nodeId = minIndex; nodeId <= maxIndex; ++nodeId) {
+
 				try {
                     
 					TrafficLightSimulation nodeSim = TrafficLightSimulations[nodeId];
@@ -51,16 +52,11 @@ namespace TrafficManager.Manager {
 						//Flags.applyNodeTrafficLightFlag((ushort)nodeId);
 						nodeSim.TimedLight.SimulationStep();
 					}
+                    //everysecond for each node
                     if (nodeSim != null && nodeSim.IsFlexibleLightActive())
                     {
-                        if (firstCycle && API.APIget.isRecording)
-                        {
-                            API.APIget.recordingTime++;
-                            API.APIget.journeyTimeUpdate();
-                            UIBase.updateRecordTime();
-
-                            firstCycle = false;
-                        }
+                        
+                        
                         nodeSim.FlexibleLight.SimulationStep();
                     }
 				} catch (Exception ex) {

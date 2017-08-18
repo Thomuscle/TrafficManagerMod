@@ -374,6 +374,7 @@ namespace TrafficManager.UI.MainMenu {
             RoadBaseAI.TrafficLightState pLightState;
             bool vehicles;
             bool pedestrians;
+            bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
@@ -387,9 +388,15 @@ namespace TrafficManager.UI.MainMenu {
                 {
                     NodeGeometry nodeGeometry = NodeGeometry.Get(i);
                     nodeGeometry.hasLights = true;
+                    
                     if (nodeGeometry.NumSegmentEnds >4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments>1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
                     {
                         continue;
+                    }
+                    if (firstMaster)
+                    {
+                        nodeGeometry.isMaster = true;
+                        firstMaster = false;
                     }
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
                     if (_areAllTrafficLightsRed)
@@ -470,6 +477,7 @@ namespace TrafficManager.UI.MainMenu {
             RoadBaseAI.TrafficLightState pLightState;
             bool vehicles;
             bool pedestrians;
+            bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
@@ -486,6 +494,11 @@ namespace TrafficManager.UI.MainMenu {
                     if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
                     {
                         continue;
+                    }
+                    if (firstMaster)
+                    {
+                        nodeGeometry.isMaster = true;
+                        firstMaster = false;
                     }
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
                     if (_areAllTrafficLightsRed)
@@ -566,6 +579,7 @@ namespace TrafficManager.UI.MainMenu {
             RoadBaseAI.TrafficLightState pLightState;
             bool vehicles;
             bool pedestrians;
+            bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
@@ -582,6 +596,11 @@ namespace TrafficManager.UI.MainMenu {
                     if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
                     {
                         continue;
+                    }
+                    if (firstMaster)
+                    {
+                        nodeGeometry.isMaster = true;
+                        firstMaster = false;
                     }
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
                     if (_areAllTrafficLightsRed)

@@ -14,7 +14,7 @@ using TrafficManager.State;
 using GenericGameBridge.Service;
 using CSUtil.Commons;
 using ColossalFramework.Plugins;
-
+using TrafficManager.UI;
 
 namespace TrafficManager.TrafficLight
 {
@@ -38,7 +38,7 @@ namespace TrafficManager.TrafficLight
         public int SelectedAlgorithm = 0;
         public List<ushort> NodeGroup;
         private bool testMode = false;
-
+        
         private bool started = false;
         
         /// <summary>
@@ -390,7 +390,7 @@ namespace TrafficManager.TrafficLight
 
         //entry point into the light simulation called from base(kind of)
         public void SimulationStep() {
-           
+            
             if (!IsStarted())
             {
                 return;
@@ -420,8 +420,15 @@ namespace TrafficManager.TrafficLight
             //-jarrod
 
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            
+
             //Log.Info($"outside if <0");
+            if (NodeGeometry.Get(NodeId).isMaster && API.APIget.isRecording)
+            {
+                //Log.Info($"Node id: {this.NodeId}, Master node: {NodeGroup[0]}");
+                API.APIget.recordingTime++;
+                API.APIget.journeyTimeUpdate();
+                UIBase.updateRecordTime();
+            }
             if (Steps[CurrentStep].NextStepRefIndex < 0)            {
                 int nextStepIndex = 0;
                 if (SelectedAlgorithm == 0)

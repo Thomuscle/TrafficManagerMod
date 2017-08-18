@@ -30,8 +30,11 @@ namespace TrafficManager.Geometry {
 			}
 			Log.Info(buf);
 		}
-
-		public ushort NodeId {
+        public bool isMaster
+        {
+            get; set;
+        }
+        public ushort NodeId {
 			get; private set;
 		} = 0;
         public uint StartFrame
