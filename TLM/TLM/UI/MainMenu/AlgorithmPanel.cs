@@ -211,7 +211,7 @@ namespace TrafficManager.UI.MainMenu {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;            
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-           
+            
             int totalWaitTime = 0;
             int totalProcessed = 0;
             double avgWaitTime=0.0;
@@ -264,12 +264,14 @@ namespace TrafficManager.UI.MainMenu {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ERROR no cars processed");
             }
             APIget.cleanUpJourneyData();
-            if(APIget.journeysProcessed != 0)
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Recording Time: " + APIget.recordingTime);
+            API.APIget.recordingTime = 0;
+            if (APIget.journeysProcessed != 0)
             {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Journeys: " + APIget.journeysProcessed);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Vehicle Journey Time: " + APIget.totalVehicleJourneyTime);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average Journey Time: " + APIget.totalVehicleJourneyTime/ APIget.journeysProcessed);
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Recording Time: " + APIget.recordingTime);
+                
                 APIget.journeysProcessed = 0;
                 APIget.totalVehicleJourneyTime = 0;
                 APIget.recordingTime = 0;

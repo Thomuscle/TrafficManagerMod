@@ -1008,8 +1008,9 @@ namespace TrafficManager.API
         
         public static void journeyTimeUpdate()
         {
+            ushort targetBuildingId = 0;
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
-            
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
             foreach (VehicleState state in vehStateMan.getAllVehicles())
             {
 
@@ -1017,17 +1018,20 @@ namespace TrafficManager.API
                 bool isParked = true;
                 ushort currentVehId = state.getID();
                 Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
-                if(!state.CheckValidity(ref v))
+                //ushort driverInstance = CustomPassengerCarAI.GetDriverInstance(currentVehId,ref v);
+                //targetBuildingId = citizenManager.m_instances.m_buffer[(int)driverInstance].m_targetBuilding;
+                if (!state.CheckValidity(ref v))
                 {
                     continue;
                 }
+                
                 bool isParking = ((v.m_flags & (Vehicle.Flags.Parking)) != 0);
-                if (!isParking && firstIteration && (v.GetSmoothVelocity(currentVehId) != Vector3.zero))
+                if (!isParking && firstIteration && (v.m_targetBuilding != 0))
                 {
                     state.alreadyEnRoute = true;
                 }
 
-                if (!isParking && !state.alreadyEnRoute && (v.GetSmoothVelocity(currentVehId) != Vector3.zero))
+                if (!isParking && !state.alreadyEnRoute)
                 {
                     //Log.Info($"got here (not parked)");
                     state.alreadyParked = false;
