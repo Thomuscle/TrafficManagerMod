@@ -1014,7 +1014,7 @@ namespace TrafficManager.API
             foreach (VehicleState state in vehStateMan.getAllVehicles())
             {
 
-                
+
                 bool isParked = true;
                 ushort currentVehId = state.getID();
                 Vehicle v = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[currentVehId];
@@ -1024,50 +1024,76 @@ namespace TrafficManager.API
                 {
                     continue;
                 }
-                
+
                 bool isParking = ((v.m_flags & (Vehicle.Flags.Parking)) != 0);
-                if (!isParking && firstIteration && (v.m_targetBuilding != 0))
+
+                //if first iteration
+                if (isParking && firstIteration)
+                {
+                    state.alreadyEnRoute = true;
+                }
+                if (!isParking && firstIteration)
                 {
                     state.alreadyEnRoute = true;
                 }
 
-                if (!isParking && !state.alreadyEnRoute)
+                //if vehicle is not already enroute not parking and not in first iteration
+                if (!isParking && !firstIteration && !state.alreadyEnRoute)
                 {
-                    //Log.Info($"got here (not parked)");
                     state.alreadyParked = false;
                     state.JourneyTime++;
                 }
 
-                //Log.Info($"got here");
-                if (firstIteration && isParking)
+                if (isParking && !firstIteration && !state.alreadyEnRoute && !state.alreadyParked)
                 {
+                    journeysProcessed++;
+                    totalVehicleJourneyTime += state.JourneyTime;
+                    state.JourneyTime = 0;
                     state.alreadyParked = true;
                 }
-                if (state.alreadyParked == false)
-                {
-
-                    if (isParking && !state.alreadyEnRoute)
-                    {
-
-                        //Log.Info($"got here (parked)");
-                        
-                        journeysProcessed++;
-                        totalVehicleJourneyTime += state.JourneyTime;
-                        state.JourneyTime = 0;
-                        state.alreadyParked = true;
-                    }
-                }
-                if (isParking && state.alreadyEnRoute && !firstIteration)
-                {
-                    state.alreadyEnRoute = false;
-                    state.alreadyParked = true;
-                }
-                
-                //if (isParking)
-                //{
-                //    //Log.Info($"v id: {state.getID()}");
-                //}
             }
+                //if (!isParking && firstIteration && (v.m_targetBuilding != 0))
+                //{
+                //    state.alreadyEnRoute = true;
+                //}
+
+            //    if (!isParking && !state.alreadyEnRoute)
+            //    {
+            //        //Log.Info($"got here (not parked)");
+                    
+            //    }
+
+            //    //Log.Info($"got here");
+            //    if (firstIteration && isParking)
+            //    {
+            //        state.alreadyEnRoute = true;
+            //        state.alreadyParked = true;
+            //    }
+            //    if (state.alreadyParked == false)
+            //    {
+
+            //        if (isParking && !state.alreadyEnRoute)
+            //        {
+
+            //            //Log.Info($"got here (parked)");
+                        
+            //            journeysProcessed++;
+            //            totalVehicleJourneyTime += state.JourneyTime;
+            //            state.JourneyTime = 0;
+            //            state.alreadyParked = true;
+            //        }
+            //    }
+            //    if (isParking && state.alreadyEnRoute && !firstIteration)
+            //    {
+            //        state.alreadyEnRoute = false;
+            //        state.alreadyParked = true;
+            //    }
+                
+            //    //if (isParking)
+            //    //{
+            //    //    //Log.Info($"v id: {state.getID()}");
+            //    //}
+            //}
            
             firstIteration = false;
         }
