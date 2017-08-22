@@ -534,20 +534,21 @@ namespace TrafficManager.Traffic {
 			if (CurrentSegmentEnd != end) {
                 
                 if (CurrentSegmentEnd != null) {
-                    
+                    if (CurrentSegmentEnd.isRecording)
+                    {
+                        CurrentSegmentEnd.carsProcessed++;
+                    }
+
                     Unlink();
 				}
 
                 //record data if is recording
+
                 
-                
-				WaitTime = 0;
+                WaitTime = 0;
 
 				if (end != null) {
-                    if (end.isRecording)
-                    {
-                        end.carsProcessed++;
-                    }
+                    
 #if DEBUGVSTATE
 					if (GlobalConfig.Instance.DebugSwitches[9])
 						Log.Warning($"VehicleState.UpdatePosition: Linking vehicle {VehicleId} with segment end {end.SegmentId} @ {end.StartNode} ({end.NodeId}). Current position: Seg. {curPos.m_segment}, lane {curPos.m_lane}, offset {curPos.m_offset} / Next position: Seg. {nextPos.m_segment}, lane {nextPos.m_lane}, offset {nextPos.m_offset}");

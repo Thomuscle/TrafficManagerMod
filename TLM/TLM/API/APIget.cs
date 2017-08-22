@@ -1006,6 +1006,11 @@ namespace TrafficManager.API
         public static bool firstIteration = true;
         public static int recordingTime = 0;
         
+
+     
+        
+        
+
         public static void journeyTimeUpdate()
         {
             ushort targetBuildingId = 0;

@@ -16,13 +16,15 @@ using CSUtil.Commons;
 using ColossalFramework.Plugins;
 using TrafficManager.API;
 using TrafficManager.Traffic;
+using System.Text;
+using System.IO;
 
 namespace TrafficManager.UI.MainMenu {
 
 	public class AlgorithmPanel : UIPanel {
         private static bool _areAllTrafficLightsRed = false;
-		
-		private const int NUM_BUTTONS_PER_ROW = 6;
+        private static List<NodeRecordingObject> nodeDataObjects =new List<NodeRecordingObject>();
+        private const int NUM_BUTTONS_PER_ROW = 6;
 		private const int NUM_ROWS = 2;
 
 		public const int VSPACING = 5;
@@ -36,6 +38,8 @@ namespace TrafficManager.UI.MainMenu {
 		public UILabel VersionLabel { get; private set; }
 
 		public UIDragHandle Drag { get; private set; }
+        public static object NodeDataObjects { get; private set; }
+
         UIButton m_algoButton;
         UIButton m_algoButton2;
         UIButton m_algoButton3;
@@ -204,9 +208,50 @@ namespace TrafficManager.UI.MainMenu {
 
             }
         }
+        public static void SetNodeData(NodeGeometry g)
+        {
+            NodeRecordingObject n = new NodeRecordingObject();
+            foreach (SegmentEndGeometry se in g.SegmentEndGeometries)
+            {
+                if (se == null)
+                    continue;
+                if (se.OutgoingOneWay)
+                {
+                    n.noOfOutgoingOneWays++;
+                    continue;
+                }
+                SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
+                if (end == null)
+                {
+                    continue;
+                }
+                
+                n.totalWaitingTime += end.totalWaitTime;
+                n.totalVehiclesProcessed += end.carsProcessed;
+                if (se.IncomingOneWay)
+                {
+                    n.noOFIncomingOneWays++;
+                }
+                end.carsProcessed = 0;
+                end.totalWaitTime = 0;
+
+            }
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got before");
+            n.avergaeWaitTime = (double)n.totalWaitingTime / (double)n.totalVehiclesProcessed;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got past");
+            n.nodeID = g.NodeId;
+            n.noOfSegments = g.NumSegmentEnds;
+            
+            nodeDataObjects.Add(n);
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out");
+        }
+        
         private static void stopRecording(UIComponent component, UIMouseEventParameter eventParam)
         {
-                      
+            StringBuilder csv = new StringBuilder();
+            string headings = "Total Wait Time,Cars Processed,Average Wait Time At An Intersection,Number Of Journeys Processed,Total Journey Time,Average Journey Time,Recording Duration";
+            String data="";
+            csv.AppendLine(headings);
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;            
@@ -238,26 +283,31 @@ namespace TrafficManager.UI.MainMenu {
                         {
                             continue; 
                         }
-                        
+                        end.GetRegisteredVehicleCount();
                         end.isRecording = false;
                         APIget.isRecording = false;
                         totalWaitTime = totalWaitTime + end.totalWaitTime;
-                        totalProcessed = totalProcessed + end.carsProcessed;
-                        end.carsProcessed = 0;
-                        end.totalWaitTime = 0;
+                        totalProcessed = totalProcessed + end.carsProcessed + end.GetValidVehicleCount();
+                        //end.carsProcessed = 0;
+                        //end.totalWaitTime = 0;
+                        
+
 
                     }
-                    
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
+                    SetNodeData(nodeGeometry);
+
                 }
 
             }
 
             if (totalProcessed != 0)
             {
-                avgWaitTime = totalWaitTime / totalProcessed;
+                avgWaitTime = ((double)totalWaitTime) / ((double)totalProcessed);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Processed: " + totalProcessed);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total wait time: " + totalWaitTime);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average wait time: " + avgWaitTime);
+                data = totalWaitTime + "," + totalProcessed + "," + avgWaitTime;
             }
             else
             {
@@ -265,13 +315,13 @@ namespace TrafficManager.UI.MainMenu {
             }
             APIget.cleanUpJourneyData();
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Recording Time: " + APIget.recordingTime);
-            API.APIget.recordingTime = 0;
+            
             if (APIget.journeysProcessed != 0)
             {
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Journeys: " + APIget.journeysProcessed);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Total Vehicle Journey Time: " + APIget.totalVehicleJourneyTime);
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " Average Journey Time: " + APIget.totalVehicleJourneyTime/ APIget.journeysProcessed);
-                
+                data = data + "," + APIget.journeysProcessed + "," + APIget.totalVehicleJourneyTime + "," + ((double)APIget.totalVehicleJourneyTime / (double)APIget.journeysProcessed)+","+ APIget.recordingTime;
                 APIget.journeysProcessed = 0;
                 APIget.totalVehicleJourneyTime = 0;
                 APIget.recordingTime = 0;
@@ -282,6 +332,23 @@ namespace TrafficManager.UI.MainMenu {
                 
                 APIget.totalVehicleJourneyTime = 0;
             }
+            API.APIget.recordingTime = 0;
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),"data.csv");
+            csv.AppendLine(data);
+            csv.AppendLine("");
+            
+            headings = "Intersection ID,Number Of Segments,Number Of Outgoing One Way Segments,Number Of Incoming One Way Segments,Total Time Waiting At Intersection,Number Of Vehicles Processed,Average Wait Time At Intersection";
+            data = "";
+            csv.AppendLine(headings);
+            for (int l = 0; l < nodeDataObjects.Count; l++)
+            {
+                csv.AppendLine(nodeDataObjects[l].nodeID + "," + nodeDataObjects[l].noOfSegments + "," + nodeDataObjects[l].noOfOutgoingOneWays + "," + nodeDataObjects[l].noOFIncomingOneWays + "," + nodeDataObjects[l].totalWaitingTime + "," + nodeDataObjects[l].totalVehiclesProcessed + "," + nodeDataObjects[l].avergaeWaitTime);
+            }
+
+            File.WriteAllText(path,csv.ToString());
+            nodeDataObjects.Clear();
+            
+            //APIget.ClearNodeData();
         }
         private static void dataRetrievalTesting(UIComponent component, UIMouseEventParameter eventParam)
         {

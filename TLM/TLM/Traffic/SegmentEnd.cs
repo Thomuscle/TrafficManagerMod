@@ -234,8 +234,29 @@ namespace TrafficManager.Traffic {
 #endif
 			return ret;
 		}
+        internal int GetValidVehicleCount()
+        {
+            VehicleStateManager vehStateManager = VehicleStateManager.Instance;
 
-		internal int GetRegisteredVehicleCount() {
+            ushort vehicleId = FirstRegisteredVehicleId;
+            int ret = 0;
+            while (vehicleId != 0)
+            {
+                
+
+                VehicleState v = vehStateManager._GetVehicleState(vehicleId);
+                if (v.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]))
+                {
+                    ++ret;
+                }
+
+                vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;
+
+
+            }
+            return ret;
+        }
+        internal int GetRegisteredVehicleCount() {
 			VehicleStateManager vehStateManager = VehicleStateManager.Instance;
 
 			ushort vehicleId = FirstRegisteredVehicleId;
