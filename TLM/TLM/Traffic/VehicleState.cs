@@ -536,6 +536,7 @@ namespace TrafficManager.Traffic {
                 if (CurrentSegmentEnd != null) {
                     if (CurrentSegmentEnd.isRecording)
                     {
+                        CurrentSegmentEnd.totalWaitTime += WaitTime;
                         CurrentSegmentEnd.carsProcessed++;
                     }
 

@@ -1167,7 +1167,7 @@ namespace TrafficManager.API
                         state.WaitTime++;
                         if (end.isRecording)
                         {
-                            end.totalWaitTime++;
+                           // end.totalWaitTime++;
                         }
                         
                         //Log.Info($" GetVehicleMetricGoingToSegment: (Segment {end.SegmentId}, Node {end.NodeId}) Checking vehicle {vehicleId}. Coming from seg. {curPos.m_segment}, lane {curPos.m_lane}, going to seg. {nextPos.m_segment}, lane {nextPos.m_lane}");
