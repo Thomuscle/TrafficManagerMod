@@ -664,24 +664,48 @@ namespace TrafficManager.API
 
                     bool[] conflictArray = new bool[4];
 
-                    switch (j)
+                    bool leftHandDrive = Constants.ServiceFactory.SimulationService.LeftHandDrive;
+
+                    if (leftHandDrive)
                     {
-                        case 0:
-                            conflictArray[3] = true;
-                            break;
-                        case 1:
-                            conflictArray[1] = true;
-                            conflictArray[3] = true;
-                            break;
-                        case 2:
-                            conflictArray[0] = true;                            
-                            conflictArray[1] = true;
-                            conflictArray[3] = true;
-                            break;
+                        switch (j)
+                        {
+                            case 0:
+                                
+                                conflictArray[2] = true;
+                                break;
+                            case 1:
+                                conflictArray[0] = true;
+                                conflictArray[2] = true;
+                                break;
+                            case 2:
+                                conflictArray[0] = true;
+                                conflictArray[1] = true;
+                                conflictArray[2] = true;
+                                break;
+                        }
                     }
-                    
-                    
-                    
+                    else
+                    {
+                        switch (j)
+                        {
+                            case 0:
+                                conflictArray[3] = true;
+                                break;
+                            case 1:
+                                conflictArray[1] = true;
+                                conflictArray[3] = true;
+                                break;
+                            case 2:
+                                conflictArray[0] = true;
+                                conflictArray[1] = true;
+                                conflictArray[3] = true;
+                                break;
+                        }
+                    }
+
+
+
                     recursiveBuilder(1, segsSeen, phase, conflictArray,segArray,i, numSegs, phaseList, node);
                 }
             }
@@ -789,22 +813,46 @@ namespace TrafficManager.API
                     }
 
                     bool[] recursiveConflictArray = new bool[4];
+                    bool leftHandDrive = Constants.ServiceFactory.SimulationService.LeftHandDrive;
 
-                    switch (j)
+                    if (leftHandDrive)
                     {
-                        case 0:
-                            recursiveConflictArray[3] = true;
-                            break;
-                        case 1:
-                            recursiveConflictArray[1] = true;
-                            recursiveConflictArray[3] = true;
-                            break;
-                        case 2:
-                            recursiveConflictArray[0] = true;
-                            recursiveConflictArray[1] = true;
-                            recursiveConflictArray[3] = true;
-                            break;
+                        switch (j)
+                        {
+                            case 0:
+                                
+                                recursiveConflictArray[2] = true;
+                                break;
+                            case 1:
+                                recursiveConflictArray[0] = true;
+                                recursiveConflictArray[2] = true;
+                                break;
+                            case 2:
+                                recursiveConflictArray[0] = true;
+                                recursiveConflictArray[1] = true;
+                                recursiveConflictArray[2] = true;
+                                break;
+                        }
                     }
+                    else
+                    {
+                        switch (j)
+                        {
+                            case 0:
+                                recursiveConflictArray[3] = true;
+                                break;
+                            case 1:
+                                recursiveConflictArray[1] = true;
+                                recursiveConflictArray[3] = true;
+                                break;
+                            case 2:
+                                recursiveConflictArray[0] = true;
+                                recursiveConflictArray[1] = true;
+                                recursiveConflictArray[3] = true;
+                                break;
+                        }
+                    }
+                    
                     
                     
                     

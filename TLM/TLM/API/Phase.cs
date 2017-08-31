@@ -104,29 +104,62 @@ namespace TrafficManager.API
                     if(seg.Equals(segArray[j]))
                     {
                         //Log.Info($"K = {k} for {seg}");
-                        switch (dir)
+
+                        bool leftHandDrive = Constants.ServiceFactory.SimulationService.LeftHandDrive;
+
+                        if (leftHandDrive)
                         {
-                            case Directions.None:
-                                rslArray[k * 3] = 0;
-                                rslArray[k * 3 + 1] = 0;
-                                rslArray[k * 3 + 2] = 0;
-                                break;
-                            case Directions.Right:
-                                rslArray[k * 3] = 1;
-                                rslArray[k * 3 + 1] = 0;
-                                rslArray[k * 3 + 2] = 0;
-                                break;
-                            case Directions.StraightRight:
-                                rslArray[k * 3] = 1;
-                                rslArray[k * 3 + 1] = 1;
-                                rslArray[k * 3 + 2] = 0;
-                                break;
-                            case Directions.All:
-                                rslArray[k * 3] = 1;
-                                rslArray[k * 3 + 1] = 1;
-                                rslArray[k * 3 + 2] = 1;
-                                break;
+                            switch (dir)
+                            {
+                                case Directions.None:
+                                    rslArray[k * 3] = 0;
+                                    rslArray[k * 3 + 1] = 0;
+                                    rslArray[k * 3 + 2] = 0;
+                                    break;
+                                case Directions.Right:  //Technically Left in this case
+                                    rslArray[k * 3] = 0;
+                                    rslArray[k * 3 + 1] = 0;
+                                    rslArray[k * 3 + 2] = 1;
+                                    break;
+                                case Directions.StraightRight: //Technically StraightLeft in this case
+                                    rslArray[k * 3] = 0;
+                                    rslArray[k * 3 + 1] = 1;
+                                    rslArray[k * 3 + 2] = 1;
+                                    break;
+                                case Directions.All:
+                                    rslArray[k * 3] = 1;
+                                    rslArray[k * 3 + 1] = 1;
+                                    rslArray[k * 3 + 2] = 1;
+                                    break;
+                            }
                         }
+                        else
+                        {
+                            switch (dir)
+                            {
+                                case Directions.None:
+                                    rslArray[k * 3] = 0;
+                                    rslArray[k * 3 + 1] = 0;
+                                    rslArray[k * 3 + 2] = 0;
+                                    break;
+                                case Directions.Right:
+                                    rslArray[k * 3] = 1;
+                                    rslArray[k * 3 + 1] = 0;
+                                    rslArray[k * 3 + 2] = 0;
+                                    break;
+                                case Directions.StraightRight:
+                                    rslArray[k * 3] = 1;
+                                    rslArray[k * 3 + 1] = 1;
+                                    rslArray[k * 3 + 2] = 0;
+                                    break;
+                                case Directions.All:
+                                    rslArray[k * 3] = 1;
+                                    rslArray[k * 3 + 1] = 1;
+                                    rslArray[k * 3 + 2] = 1;
+                                    break;
+                            }
+                        }
+                       
                     }else
                     {
                         if (!(segArray[j].Equals(0)))
