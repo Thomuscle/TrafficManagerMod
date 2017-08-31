@@ -287,7 +287,7 @@ namespace TrafficManager.UI.MainMenu {
                         end.isRecording = false;
                         APIget.isRecording = false;
                         totalWaitTime = totalWaitTime + end.totalWaitTime;
-                        totalProcessed = totalProcessed + end.carsProcessed + end.GetValidVehicleCount();
+                        totalProcessed = totalProcessed + end.carsProcessed;
                         //end.carsProcessed = 0;
                         //end.totalWaitTime = 0;
                         
