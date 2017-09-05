@@ -51,7 +51,7 @@ namespace TrafficManager.UI.MainMenu {
             this.relativePosition = new Vector3(15f, 120f);
             isVisible = false;
             m_algoButton = this.AddUIComponent<UIButton>();
-            m_algoButton.text = "Toggle AWAITS Algorithm";
+            m_algoButton.text = "Toggle AWAITS";
             m_algoButton.normalBgSprite = "SubBarButtonBase";
             m_algoButton.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_algoButton.pressedBgSprite = "SubBarButtonBasePressed";
@@ -62,7 +62,7 @@ namespace TrafficManager.UI.MainMenu {
                 clickToggleAllTrafficLightsMoody(component, eventParam);
             };
             m_algoButton2 = this.AddUIComponent<UIButton>();
-            m_algoButton2.text = "Toggle AWAITS++ Algorithm";
+            m_algoButton2.text = "Toggle AWAITS++";
             m_algoButton2.normalBgSprite = "SubBarButtonBase";
             m_algoButton2.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_algoButton2.pressedBgSprite = "SubBarButtonBasePressed";
