@@ -670,15 +670,14 @@ namespace TrafficManager.API
                     {
                         switch (j)
                         {
-                            case 0:
-                                
-                                conflictArray[2] = true;
+                            case 0: //Turning Left
+                                conflictArray[2] = true; 
                                 break;
-                            case 1:
+                            case 1: //Turning Left and Going Straight
                                 conflictArray[0] = true;
                                 conflictArray[2] = true;
                                 break;
-                            case 2:
+                            case 2: //All directions (lhd)
                                 conflictArray[0] = true;
                                 conflictArray[1] = true;
                                 conflictArray[2] = true;
@@ -689,14 +688,14 @@ namespace TrafficManager.API
                     {
                         switch (j)
                         {
-                            case 0:
+                            case 0: //Turning Right
                                 conflictArray[3] = true;
                                 break;
-                            case 1:
+                            case 1: //Turning Right and going straight
                                 conflictArray[1] = true;
                                 conflictArray[3] = true;
                                 break;
-                            case 2:
+                            case 2: //All directions (rhd)
                                 conflictArray[0] = true;
                                 conflictArray[1] = true;
                                 conflictArray[3] = true;
@@ -716,6 +715,7 @@ namespace TrafficManager.API
         public static ushort[] getOrderedSegments(NodeGeometry node, out int numSegs)
         {
             ushort[] tempSegArray = new ushort[4];
+            bool leftHandDrive = Constants.ServiceFactory.SimulationService.LeftHandDrive;
 
             tempSegArray[0] = node.SegmentEndGeometries[0].SegmentId;
             
@@ -723,13 +723,28 @@ namespace TrafficManager.API
 
             if (node.SegmentEndGeometries[0].NumRightSegments > 0)
             {
-                tempSegArray[1] = node.SegmentEndGeometries[0].RightSegments[0];
+                if (leftHandDrive)
+                {
+                    tempSegArray[3] = node.SegmentEndGeometries[0].RightSegments[0];
+                }
+                else
+                {
+                    tempSegArray[1] = node.SegmentEndGeometries[0].RightSegments[0];
+                }
+                
                 numSegs++;
                 
             }
             else
             {
-                tempSegArray[1] = 0;
+                if (leftHandDrive)
+                {
+                    tempSegArray[3] = 0;
+                }
+                else
+                {
+                    tempSegArray[1] = 0;
+                }
                 //Log.Info($"doesn't have right segments: {node.SegmentEndGeometries[0].RightSegments[0]}");
             }
 
@@ -747,13 +762,29 @@ namespace TrafficManager.API
 
             if (node.SegmentEndGeometries[0].NumLeftSegments > 0)
             {
-                tempSegArray[3] = node.SegmentEndGeometries[0].LeftSegments[0];
+                if (leftHandDrive)
+                {
+                    tempSegArray[1] = node.SegmentEndGeometries[0].LeftSegments[0];
+                }
+                else
+                {
+                    tempSegArray[3] = node.SegmentEndGeometries[0].LeftSegments[0];
+                }
+                
                 numSegs++;
                 //Log.Info($"has left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
             }
             else
             {
-                tempSegArray[3] = 0;
+                if (leftHandDrive)
+                {
+                    tempSegArray[1] = 0;
+                }
+                else
+                {
+                    tempSegArray[3] = 0;
+                }
+                    
                 //Log.Info($"doesnt have left segments: {node.SegmentEndGeometries[0].LeftSegments[0]}");
             }
             //Log.Info($"NO. OF SEGMENTS: {numSegs}");
@@ -820,7 +851,6 @@ namespace TrafficManager.API
                         switch (j)
                         {
                             case 0:
-                                
                                 recursiveConflictArray[2] = true;
                                 break;
                             case 1:
@@ -865,11 +895,21 @@ namespace TrafficManager.API
                         while(diff != 0)
                         {
                             bool[] tempArray = new bool[4];
-
-                            tempArray[0] = rotatedRecursiveConflictArray[1];
-                            tempArray[1] = rotatedRecursiveConflictArray[3];
-                            tempArray[2] = rotatedRecursiveConflictArray[0];
-                            tempArray[3] = rotatedRecursiveConflictArray[2];
+                            if (leftHandDrive)
+                            {
+                                tempArray[0] = rotatedRecursiveConflictArray[2];
+                                tempArray[1] = rotatedRecursiveConflictArray[0];
+                                tempArray[2] = rotatedRecursiveConflictArray[3];
+                                tempArray[3] = rotatedRecursiveConflictArray[1];
+                            }
+                            else
+                            {
+                                tempArray[0] = rotatedRecursiveConflictArray[1];
+                                tempArray[1] = rotatedRecursiveConflictArray[3];
+                                tempArray[2] = rotatedRecursiveConflictArray[0];
+                                tempArray[3] = rotatedRecursiveConflictArray[2];
+                            }
+                            
                             rotatedRecursiveConflictArray = tempArray;
 
                             diff--;
@@ -879,11 +919,21 @@ namespace TrafficManager.API
                         while (diff != 0)
                         {
                             bool[] tempArray = new bool[4];
-
-                            tempArray[0] = rotatedRecursiveConflictArray[2];
-                            tempArray[1] = rotatedRecursiveConflictArray[0];
-                            tempArray[2] = rotatedRecursiveConflictArray[3];
-                            tempArray[3] = rotatedRecursiveConflictArray[1];
+                            if (leftHandDrive)
+                            {
+                                tempArray[0] = rotatedRecursiveConflictArray[1];
+                                tempArray[1] = rotatedRecursiveConflictArray[3];
+                                tempArray[2] = rotatedRecursiveConflictArray[0];
+                                tempArray[3] = rotatedRecursiveConflictArray[2];
+                            }
+                            else
+                            {
+                                tempArray[0] = rotatedRecursiveConflictArray[2];
+                                tempArray[1] = rotatedRecursiveConflictArray[0];
+                                tempArray[2] = rotatedRecursiveConflictArray[3];
+                                tempArray[3] = rotatedRecursiveConflictArray[1];
+                            }
+                            
                             rotatedRecursiveConflictArray = tempArray;
 
                             diff++;
@@ -1250,5 +1300,11 @@ namespace TrafficManager.API
             }
         }
 
+        
+        public static int getNextIndexMyATCS(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+        {
+            //TODO FOR CUSTOM ALGORITHM
+            return 0;
+        }
     }
 }

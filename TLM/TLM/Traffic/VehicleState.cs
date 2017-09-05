@@ -538,6 +538,11 @@ namespace TrafficManager.Traffic {
                     {
                         CurrentSegmentEnd.totalWaitTime += WaitTime;
                         CurrentSegmentEnd.carsProcessed++;
+                        
+                        if (CurrentSegmentEnd.longestWaitingCar < WaitTime)
+                        {
+                            CurrentSegmentEnd.longestWaitingCar = WaitTime;
+                        }
                     }
 
                     Unlink();

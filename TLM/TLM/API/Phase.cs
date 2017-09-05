@@ -23,8 +23,8 @@ namespace TrafficManager.API
         public enum Directions
         {
             None = 0,
-            Right = 1, 
-            StraightRight = 2, 
+            InsideTurn = 1, 
+            StraightInside = 2, 
             All = 3
         }
 
@@ -116,17 +116,17 @@ namespace TrafficManager.API
                                     rslArray[k * 3 + 1] = 0;
                                     rslArray[k * 3 + 2] = 0;
                                     break;
-                                case Directions.Right:  //Technically Left in this case
+                                case Directions.InsideTurn:  //Technically Left in this case
                                     rslArray[k * 3] = 0;
                                     rslArray[k * 3 + 1] = 0;
                                     rslArray[k * 3 + 2] = 1;
                                     break;
-                                case Directions.StraightRight: //Technically StraightLeft in this case
+                                case Directions.StraightInside: //Technically StraightLeft in this case
                                     rslArray[k * 3] = 0;
                                     rslArray[k * 3 + 1] = 1;
                                     rslArray[k * 3 + 2] = 1;
                                     break;
-                                case Directions.All:
+                                case Directions.All: 
                                     rslArray[k * 3] = 1;
                                     rslArray[k * 3 + 1] = 1;
                                     rslArray[k * 3 + 2] = 1;
@@ -142,12 +142,12 @@ namespace TrafficManager.API
                                     rslArray[k * 3 + 1] = 0;
                                     rslArray[k * 3 + 2] = 0;
                                     break;
-                                case Directions.Right:
+                                case Directions.InsideTurn: //Technically Right in this case
                                     rslArray[k * 3] = 1;
                                     rslArray[k * 3 + 1] = 0;
                                     rslArray[k * 3 + 2] = 0;
                                     break;
-                                case Directions.StraightRight:
+                                case Directions.StraightInside: //Technically StraightRight in this case
                                     rslArray[k * 3] = 1;
                                     rslArray[k * 3 + 1] = 1;
                                     rslArray[k * 3 + 2] = 0;

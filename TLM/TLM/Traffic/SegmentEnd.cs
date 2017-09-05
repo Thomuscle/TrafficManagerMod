@@ -42,7 +42,8 @@ namespace TrafficManager.Traffic {
         public int totalWaitTime=0;
         public int carsProcessed = 0;
 		private bool cleanupRequested = false;
-
+        public int longestWaitingCar=0;
+        
 		/// <summary>
 		/// Vehicles that are traversing or will traverse this segment
 		/// </summary>

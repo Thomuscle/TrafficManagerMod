@@ -51,7 +51,7 @@ namespace TrafficManager.UI.MainMenu {
             this.relativePosition = new Vector3(15f, 120f);
             isVisible = false;
             m_algoButton = this.AddUIComponent<UIButton>();
-            m_algoButton.text = "Toggle Moody Algorithm";
+            m_algoButton.text = "Toggle AWAITS Algorithm";
             m_algoButton.normalBgSprite = "SubBarButtonBase";
             m_algoButton.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_algoButton.pressedBgSprite = "SubBarButtonBasePressed";
@@ -62,7 +62,7 @@ namespace TrafficManager.UI.MainMenu {
                 clickToggleAllTrafficLightsMoody(component, eventParam);
             };
             m_algoButton2 = this.AddUIComponent<UIButton>();
-            m_algoButton2.text = "Toggle Optimal Algorithm";
+            m_algoButton2.text = "Toggle AWAITS++ Algorithm";
             m_algoButton2.normalBgSprite = "SubBarButtonBase";
             m_algoButton2.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_algoButton2.pressedBgSprite = "SubBarButtonBasePressed";
@@ -84,7 +84,7 @@ namespace TrafficManager.UI.MainMenu {
                 clickToggleAllTrafficLightsRR(component, eventParam);
             };
             m_testing = this.AddUIComponent<UIButton>();
-            m_testing.text = "Testing";
+            m_testing.text = "Toggle My ATCS";
             m_testing.normalBgSprite = "SubBarButtonBase";
             m_testing.hoveredBgSprite = "SubBarButtonBaseHovered";
             m_testing.pressedBgSprite = "SubBarButtonBasePressed";
@@ -92,7 +92,7 @@ namespace TrafficManager.UI.MainMenu {
             m_testing.height = 30;
             m_testing.relativePosition = new Vector3(15f, 140f);
             m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                dataRetrievalTesting(component, eventParam);
+                toggleMyATCS(component, eventParam);
             };
 
             m_recording = this.AddUIComponent<UIButton>();
@@ -208,7 +208,7 @@ namespace TrafficManager.UI.MainMenu {
 
             }
         }
-        public static void SetNodeData(NodeGeometry g)
+        public static void SetNodeData(NodeGeometry g,int longestWait)
         {
             NodeRecordingObject n = new NodeRecordingObject();
             foreach (SegmentEndGeometry se in g.SegmentEndGeometries)
@@ -236,14 +236,15 @@ namespace TrafficManager.UI.MainMenu {
                 end.totalWaitTime = 0;
 
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got before");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got before");
             n.avergaeWaitTime = (double)n.totalWaitingTime / (double)n.totalVehiclesProcessed;
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got past");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got past");
             n.nodeID = g.NodeId;
             n.noOfSegments = g.NumSegmentEnds;
+            n.longestWait = longestWait;
             
             nodeDataObjects.Add(n);
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out");
         }
         
         private static void stopRecording(UIComponent component, UIMouseEventParameter eventParam)
@@ -262,6 +263,8 @@ namespace TrafficManager.UI.MainMenu {
             double avgWaitTime=0.0;
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
+                int longestWait = 0;
+                int shortestWait = 0;
                 var node = netManager.m_nodes.m_buffer[i];
                 var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
                 if (hasLights)
@@ -276,12 +279,18 @@ namespace TrafficManager.UI.MainMenu {
                     foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
                     {
                         if (se == null || se.OutgoingOneWay)
+                            
                             continue;
                         
                         SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
-                        if (end == null)
+                        if (end == null && !end.isRecording)
                         {
                             continue; 
+                        }
+                        
+                        if (longestWait < end.longestWaitingCar)
+                        {
+                            longestWait = end.longestWaitingCar;
                         }
                         end.GetRegisteredVehicleCount();
                         end.isRecording = false;
@@ -294,8 +303,12 @@ namespace TrafficManager.UI.MainMenu {
 
 
                     }
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
-                    SetNodeData(nodeGeometry);
+                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
+                    if(longestWait> APIget.recordingTime)
+                    {
+                        longestWait = APIget.recordingTime;
+                    }
+                    SetNodeData(nodeGeometry,longestWait);
 
                 }
 
@@ -337,12 +350,12 @@ namespace TrafficManager.UI.MainMenu {
             csv.AppendLine(data);
             csv.AppendLine("");
             
-            headings = "Intersection ID,Number Of Segments,Number Of Outgoing One Way Segments,Number Of Incoming One Way Segments,Total Time Waiting At Intersection,Number Of Vehicles Processed,Average Wait Time At Intersection";
+            headings = "Intersection ID,Number Of Segments,Number Of Outgoing One Way Segments,Number Of Incoming One Way Segments,Total Time Waiting At Intersection,Number Of Vehicles Processed,Average Wait Time At Intersection,Longest Wait Time At Intersection";
             data = "";
             csv.AppendLine(headings);
             for (int l = 0; l < nodeDataObjects.Count; l++)
             {
-                csv.AppendLine(nodeDataObjects[l].nodeID + "," + nodeDataObjects[l].noOfSegments + "," + nodeDataObjects[l].noOfOutgoingOneWays + "," + nodeDataObjects[l].noOFIncomingOneWays + "," + nodeDataObjects[l].totalWaitingTime + "," + nodeDataObjects[l].totalVehiclesProcessed + "," + nodeDataObjects[l].avergaeWaitTime);
+                csv.AppendLine(nodeDataObjects[l].nodeID + "," + nodeDataObjects[l].noOfSegments + "," + nodeDataObjects[l].noOfOutgoingOneWays + "," + nodeDataObjects[l].noOFIncomingOneWays + "," + nodeDataObjects[l].totalWaitingTime + "," + nodeDataObjects[l].totalVehiclesProcessed + "," + nodeDataObjects[l].avergaeWaitTime + "," + nodeDataObjects[l].longestWait);
             }
 
             File.WriteAllText(path,csv.ToString());
@@ -350,102 +363,16 @@ namespace TrafficManager.UI.MainMenu {
             
             //APIget.ClearNodeData();
         }
-        private static void dataRetrievalTesting(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            VehicleStateManager vehStateMan = VehicleStateManager.Instance;
-            var netManager = Singleton<NetManager>.instance;
-            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            //SegmentEndManager endMan = SegmentEndManager.Instance;
-            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Clicked");
-            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
-            {
-                var node = netManager.m_nodes.m_buffer[i];
-                
-                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
-
-                if (hasLights)
-                {
-
-                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-                    //if (nodeGeometry.NodeId.Equals(20832))
-                    //{
-
-                    
-                        foreach (SegmentEndGeometry se in nodeGeometry.SegmentEndGeometries)
-                        {
-                            if (se == null || se.OutgoingOneWay)
-                                continue;
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "did loop here");
-                            SegmentEnd end = SegmentEndManager.Instance.GetSegmentEnd(se.SegmentId, se.StartNode);
-                            if (end == null)
-                            {
-                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "skip invalid seg");
-
-                                continue; // skip invalid segment
-                            }
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "DIDNT SKIP");
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " ID: " + se.SegmentId);
-                            string a = end.GetRegisteredVehicleCount().ToString();
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "vCount: "+a);
-                            if (end.FirstRegisteredVehicleId != 0)
-                            {
-                                VehicleState state = vehStateMan._GetVehicleState(end.FirstRegisteredVehicleId);
-                            if (!state.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[end.FirstRegisteredVehicleId]))
-                            {
-                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId +" vehID: " + end.FirstRegisteredVehicleId + " type: " + state.VehicleType);
-                            }
-                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " segID: " + se.SegmentId);
-
-                            }
-
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "SegmentEndID: "+ se.SegmentId + " RegisteredVehicles: "+ end.GetRegisteredVehicleCount());
-                        //}
-                    }
-                    //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
-                }
-
-            }
-        }
-        private static void clickToggleAllTrafficLights2(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            var netManager = Singleton<NetManager>.instance;
-            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            RoadBaseAI.TrafficLightState vLightState;
-            RoadBaseAI.TrafficLightState pLightState;
-            bool vehicles;
-            bool pedestrians;
-            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
-            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
-            {
-                var node = netManager.m_nodes.m_buffer[i];
-                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
-
-                if (hasLights)
-                {
-
-                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-
-                    //APIget.getOrderedSegments(nodeGeometry, out int numSegs);
-                }
-
-            }
-        }
+    
 
         private static void clickToggleAllTrafficLightsMoody(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
             CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
-            RoadBaseAI.TrafficLightState vLightState;
-            RoadBaseAI.TrafficLightState pLightState;
-            bool vehicles;
-            bool pedestrians;
             bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
                 
@@ -477,15 +404,9 @@ namespace TrafficManager.UI.MainMenu {
 
                         List<ushort> nodeGroup = new List<ushort>();
                         nodeGroup.Add(i);
-                        
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
 
                         sim.SetupFlexibleTrafficLight(nodeGroup, 0);
-
-                       
-                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
                         
-                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
                         ushort[] segArray;
                         List<Phase> phases = APIget.buildOrderedPhases(nodeGeometry, out segArray);
                         
@@ -509,11 +430,6 @@ namespace TrafficManager.UI.MainMenu {
                             {
                                 CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
                                 segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
-                                //if (segmentlight.segmentid.equals(28062))
-                                //{
-                                //    log.info($"here");
-                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
-                                //}
                                 sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
                             }
 
@@ -542,10 +458,7 @@ namespace TrafficManager.UI.MainMenu {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
             CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
-            RoadBaseAI.TrafficLightState vLightState;
-            RoadBaseAI.TrafficLightState pLightState;
-            bool vehicles;
-            bool pedestrians;
+
             bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
             // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
@@ -743,26 +656,35 @@ namespace TrafficManager.UI.MainMenu {
 
 
 
-
-
-        private static void clickToggleAllFlexibleTimedTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
+        private static void toggleMyATCS(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            RoadBaseAI.TrafficLightState vLightState;
-            RoadBaseAI.TrafficLightState pLightState;
-            bool vehicles;
-            bool pedestrians;
+            CustomSegmentLightsManager customTrafficLightsManager = CustomSegmentLightsManager.Instance;
+
+            bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
+
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
+
                 var node = netManager.m_nodes.m_buffer[i];
 
                 var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
 
                 if (hasLights)
                 {
+                    NodeGeometry nodeGeometry = NodeGeometry.Get(i);
+                    nodeGeometry.hasLights = true;
+                    if (nodeGeometry.NumSegmentEnds > 4 || nodeGeometry.SegmentEndGeometries[0].NumRightSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumLeftSegments > 1 || nodeGeometry.SegmentEndGeometries[0].NumStraightSegments > 1)
+                    {
+                        continue;
+                    }
+                    if (firstMaster)
+                    {
+                        nodeGeometry.isMaster = true;
+                        firstMaster = false;
+                    }
                     TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
                     if (_areAllTrafficLightsRed)
                     {
@@ -771,128 +693,59 @@ namespace TrafficManager.UI.MainMenu {
                     else
                     {
 
+
                         List<ushort> nodeGroup = new List<ushort>();
                         nodeGroup.Add(i);
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
-                        sim.SetupFlexibleTrafficLight(nodeGroup);
-                        NodeGeometry nodeGeometry = NodeGeometry.Get(i);
 
-                        ushort[] segArray = new ushort[nodeGeometry.SegmentEndGeometries.Length];
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "length: " + nodeGeometry.SegmentEndGeometries.Length);
-                        int i2 = 0;
+                        //Selected Algorithm must be 3 for APIget.getNextIndexMyATCS() to be called every second.
+                        sim.SetupFlexibleTrafficLight(nodeGroup, 3);
 
-                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
+
+                        ushort[] segArray;
+
+                        //CAN CHANGE!!!
+                        //This will generate all the possible phases as a node without redundant phases. If you want your own
+                        // list of phases, simply call a new function instead of APIget.buildPhasesNoRedundancy(). 
+                        List<Phase> phases = APIget.buildPhasesNoRedundancy(nodeGeometry, out segArray);
+
+
+                        foreach (Phase phase in phases)
                         {
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
-                            if (end == null || end.OutgoingOneWay)
-                                continue;
-                            
-                            segArray[i2] = end.SegmentId;
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "self : " + end.SegmentId);
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "left segments: " + end.LeftSegments[0]);
-                            i2++;
-                            
-                            
+
+                            ushort[] rslArray = phase.getRslArray(segArray, nodeGeometry);
+
+
+                            sim.FlexibleLight.AddStep(rslArray, segArray);
+
                         }
-
-                        //this doesnt occur, never leaves the above loop
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out of first for loop");
-                        int k = 0;
-                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
-
                         foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
                         {
-                           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Number of segments: "+ node.CountSegments());
                             if (end == null || end.OutgoingOneWay)
                                 continue;
-                            ushort[] lsrArray = new ushort[node.CountSegments()*3];
-                            
-                            for (int j = 0; j <lsrArray.Length; j++)
+                            var segmentLights = customTrafficLightsManager.GetSegmentLights(end.SegmentId, end.StartNode);
+
+                            foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
                             {
-                                if(j == k*3 || j == k * 3 + 1 || j == k * 3 + 2)
-                                {
-                                    lsrArray[j] = 1;
-                                }
-                                else
-                                {
-                                    lsrArray[j] = 0;
-                                }
+                                CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
+                                segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
+
+                                sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
                             }
-                            //this is not printing
-                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "added a step");
-                            sim.FlexibleLight.AddStep(lsrArray, segArray);
-                            k++;
-                           // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, lsrArray.ToString());
+
                         }
-
-
                         sim.FlexibleLight.Start();
-
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
-
+                        Log.Info($"started");
                     }
 
-
                 }
-
-            }
-            _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
-        }
-    
-        private static void clickToggleAllTimedTrafficLights(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            
-            var netManager = Singleton<NetManager>.instance;
-            var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            RoadBaseAI.TrafficLightState vLightState;
-            RoadBaseAI.TrafficLightState pLightState;
-            bool vehicles;
-            bool pedestrians;
-            TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "start");
-            for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
-            {
-                var node = netManager.m_nodes.m_buffer[i];
-
-                var hasLights = ((node.m_flags & NetNode.Flags.TrafficLights) == NetNode.Flags.TrafficLights);
-
-                if (hasLights)
+                else
                 {
-                    TrafficLightSimulation sim = tlsMan.AddNodeToSimulation(i);
-                    if (_areAllTrafficLightsRed)
-                    {
-                        sim.DestroyTimedTrafficLight();
-                    }
-                    else
-                    {
-
-                        List<ushort> nodeGroup = new List<ushort>();
-                        nodeGroup.Add(i);
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
-                        sim.SetupTimedTrafficLight(nodeGroup);
-                        NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-
-
-                        foreach (SegmentEndGeometry end in nodeGeometry.SegmentEndGeometries)
-                        {
-                            if (end == null || end.OutgoingOneWay)
-                                continue;
-
-                            sim.TimedLight.AddStep(5, 5, 1f, end.SegmentId);
-                        }
-
-
-                        sim.TimedLight.Start();
-                    }
-                    
-
+                    NodeGeometry.Get(i).hasLights = false;
                 }
 
             }
             _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
-
         }
+
     }
-
-
 }

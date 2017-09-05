@@ -18,5 +18,7 @@ namespace TrafficManager.API
         public int noOfSegments;
         public int noOfOutgoingOneWays;
         public int noOFIncomingOneWays;
+        public int longestWait;
+        
     }
 }

@@ -440,6 +440,9 @@ namespace TrafficManager.TrafficLight
                 }else if (SelectedAlgorithm == 2)
                 {
                     nextStepIndex = API.APIget.getNextIndexRR((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                }else if (SelectedAlgorithm == 3)
+                {
+                    nextStepIndex = API.APIget.getNextIndexMyATCS((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
                 }
                 else
                 {
