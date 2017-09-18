@@ -270,7 +270,7 @@ namespace TrafficManager.Traffic {
                 {
                     int wait = vehStateManager._GetVehicleState(vehicleId).WaitTime;
 
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " vID: " + vehicleId + " segID: " + SegmentId);
+                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, " waitTime: " + wait + " vState: " + v.JunctionTransitState + " vID: " + vehicleId + " segID: " + SegmentId);
                 }
                 
                 vehicleId = vehStateManager._GetVehicleState(vehicleId).NextVehicleIdOnSegment;

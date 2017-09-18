@@ -1120,7 +1120,7 @@ namespace TrafficManager.UI.SubTools {
 								hoveredSegment = true;
 
 								if (MainTool.CheckClicked()) {
-                                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "J");
+                                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "J");
 
                                     liveSegmentLights.ManualPedestrianMode = !liveSegmentLights.ManualPedestrianMode;
 								}
@@ -1151,7 +1151,7 @@ namespace TrafficManager.UI.SubTools {
 							hoveredSegment = true;
 
 							if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "K");
+                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "K");
 
                                 if (!liveSegmentLights.ManualPedestrianMode) {
 									liveSegmentLights.ManualPedestrianMode = true;
@@ -1197,7 +1197,7 @@ namespace TrafficManager.UI.SubTools {
 								hoveredSegment = true;
 
 								if (MainTool.CheckClicked()) {
-                                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "A");
+                                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "A");
                                     liveSegmentLight.ToggleMode();
 									timedNode.ChangeLightMode(srcSegmentId, vehicleType, liveSegmentLight.CurrentMode);
 								}
@@ -1326,7 +1326,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "B");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "B");
 
                                             liveSegmentLight.ChangeMainLight();
 										}
@@ -1386,7 +1386,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "C");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "C");
 
                                             liveSegmentLight.ChangeLeftLight();
 										}
@@ -1451,7 +1451,7 @@ namespace TrafficManager.UI.SubTools {
 									hoveredSegment = true;
 
 									if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "D");
+                                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "D");
 
                                         liveSegmentLight.ChangeMainLight();
 									}
@@ -1531,7 +1531,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "E");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "E");
 
                                             liveSegmentLight.ChangeMainLight();
 										}
@@ -1591,7 +1591,7 @@ namespace TrafficManager.UI.SubTools {
 
 											if (MainTool.CheckClicked() && !timedActive &&
 												(_timedPanelAdd || _timedEditStep >= 0)) {
-                                                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "F");
+                                                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "F");
 
                                                 liveSegmentLight.ChangeRightLight();
 											}
@@ -1662,7 +1662,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "G");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "G");
 
                                             liveSegmentLight.ChangeLeftLight();
 										}
@@ -1728,7 +1728,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
 
                                             liveSegmentLight.ChangeMainLight();
 										}
@@ -1789,7 +1789,7 @@ namespace TrafficManager.UI.SubTools {
 										hoveredSegment = true;
 
 										if (MainTool.CheckClicked() && !timedActive && (_timedPanelAdd || _timedEditStep >= 0)) {
-                                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "I");
+                                            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "I");
 
                                             liveSegmentLight.ChangeRightLight();
 										}

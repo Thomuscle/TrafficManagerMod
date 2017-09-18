@@ -247,7 +247,7 @@ namespace TrafficManager.UI.SubTools {
 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "A");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "A");
 
             segmentLights.ManualPedestrianMode = !segmentLights.ManualPedestrianMode;
 			return true;
@@ -267,7 +267,7 @@ namespace TrafficManager.UI.SubTools {
                
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "B");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "B");
 
             if (!segmentLights.ManualPedestrianMode) {
 				segmentLights.ManualPedestrianMode = true;
@@ -290,7 +290,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "C");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "C");
             segmentDict.ToggleMode();
 			return true;
 		}
@@ -349,7 +349,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "D");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "D");
             segmentDict.ChangeMainLight();
 			return true;
 		}
@@ -380,7 +380,7 @@ namespace TrafficManager.UI.SubTools {
 					hoveredSegment = true;
 
 					if (MainTool.CheckClicked()) {
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "E");
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "E");
                         segmentDict.ChangeLeftLight();
 					}
 				}
@@ -432,7 +432,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "F");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "F");
             segmentDict.ChangeMainLight();
 			return true;
 		}
@@ -491,7 +491,7 @@ namespace TrafficManager.UI.SubTools {
 				hoveredSegment = true;
 
 				if (MainTool.CheckClicked()) {
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "G");
+                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "G");
                     segmentDict.ChangeMainLight();
 				}
 			}
@@ -528,7 +528,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
             segmentDict.ChangeRightLight();
 			return true;
 		}
@@ -569,7 +569,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "H");
             segmentDict.ChangeLeftLight();
 
 			if (!hasForwardSegment) {
@@ -612,7 +612,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "I");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "I");
             segmentDict.ChangeMainLight();
 			return true;
 		}
@@ -645,7 +645,7 @@ namespace TrafficManager.UI.SubTools {
                 
                 return true;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "J");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "J");
             segmentDict.ChangeRightLight();
 			return true;
 		}

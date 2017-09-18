@@ -227,7 +227,7 @@ namespace TrafficManager.TrafficLight
             Steps[0].Start();
             Steps[0].UpdateLiveLights();
 
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Started FTL");
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Started FTL");
 
             started = true;
         }

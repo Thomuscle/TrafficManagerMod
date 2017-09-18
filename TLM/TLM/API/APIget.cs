@@ -482,7 +482,10 @@ namespace TrafficManager.API
                 }
                 
             }
-
+            if (currentStep != bestIndex)
+            {
+                nodeGeometry.numTicks = 0;
+            }
             return bestIndex;
         }
 
