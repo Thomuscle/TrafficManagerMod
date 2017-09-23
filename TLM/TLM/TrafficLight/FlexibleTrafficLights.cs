@@ -101,11 +101,6 @@ namespace TrafficManager.TrafficLight
 
         }
 
-        
-
-       
-
-
 
         private void UpdateDirections(NodeGeometry nodeGeo)
         {
@@ -433,10 +428,10 @@ namespace TrafficManager.TrafficLight
                 int nextStepIndex = 0;
                 if (SelectedAlgorithm == 0)
                 {
-                     nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                     nextStepIndex = API.APIget.getNextIndexAWAITS((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
                 }else if (SelectedAlgorithm == 1)
                 {
-                     nextStepIndex = API.APIget.getNextIndexOptimal((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                     nextStepIndex = API.APIget.getNextIndexAWAITSPlusPlus((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
                 }else if (SelectedAlgorithm == 2)
                 {
                     nextStepIndex = API.APIget.getNextIndexRR((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
@@ -446,7 +441,7 @@ namespace TrafficManager.TrafficLight
                 }
                 else
                 {
-                    nextStepIndex = API.APIget.getNextIndex((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
+                    nextStepIndex = API.APIget.getNextIndexAWAITS((CurrentStep) % NumSteps(), NumSteps(), NodeGeometry.Get(NodeId), Steps);
                 }
                 
                 API.APIget.incrementWait(NodeGeometry.Get(NodeId));
@@ -754,6 +749,7 @@ namespace TrafficManager.TrafficLight
             }
             Log._Debug($"FlexibleTrafficLights.UpdateSegmentEnds: finished for node {NodeId}");
         }
+
 
         private void DestroySegmentEnds()
         {

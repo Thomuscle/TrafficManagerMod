@@ -41,6 +41,8 @@ namespace TrafficManager.API
         }
         public static bool isFirstCycle = true;
         public static bool isRecording = false;
+
+        //Gets the segments for a node.
         public static List<ushort> getSegments(NetNode node)
         {
             List<ushort> segments = new List<ushort>();
@@ -53,7 +55,8 @@ namespace TrafficManager.API
             return segments;
         }
 
-        //for a nodeid (intersection), get all the possible directions for 
+
+        //For a nodeid (intersection), get all the possible directions for 
         //each segment(traffic light) and put them into a binary left-straight-right array
         public static ushort[] getSegmentDirections(ushort nodeID)
         {
@@ -91,38 +94,18 @@ namespace TrafficManager.API
             return lsrArray;
         }
 
+
+
+        //Gets the current frame value in the game.
         public static uint getCurrentFrame()
         {
 
             return Constants.ServiceFactory.SimulationService.CurrentFrameIndex >> 6;
         }
 
-        //static bool stepHappening = false;
-        //static uint startFrame = 0;
 
-        public static int getNextIndexRoundRobin(int currentStep, int noOfSteps, NodeGeometry node)
-        {
-            if (!node.StepHappening)
-            {
-                node.StartFrame = getCurrentFrame();
-                node.StepHappening = true;
-            }
-
-            //Log.Info($"Current frame comparison value: {node.StartFrame} + 5 - {getCurrentFrame()} = {(node.StartFrame + 20) - getCurrentFrame()}");
-            if (Math.Max(0, ((int)node.StartFrame + 5) - (int)getCurrentFrame()) == 0)
-            {
-
-
-                node.StepHappening = false;
-                return (currentStep + 1) % noOfSteps;
-            }
-            else
-            {
-                return currentStep;
-            }
-
-        }
-
+        //This function will get the next index according to the Round Robin algorithm. After 5 seconds the next phase in the list
+        //is activated. If the list has been gone through completely, the first phase in the list is chosen again.
         public static int getNextIndexRR(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
             nodeGeometry.numTicks++;
@@ -137,7 +120,12 @@ namespace TrafficManager.API
             return (currentStep + 1) % noOfSteps;
         }
 
-        public static int getNextIndex(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+
+
+        //This function will get the next index according to the AWAITS algorithm. Essentially the algorithm will work out 
+        //the best next phase by calculating the number of cars waiting for each movement, and then attempt to service the movements
+        //with the longest queues in a greedy fashion. Movements where cars have been waiting too long are prioritised to prevent starvation.
+        public static int getNextIndexAWAITS(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
            
 
@@ -172,17 +160,13 @@ namespace TrafficManager.API
                 }
 
 
-
-
-                
-
                 ushort importance = 0;
                 ushort vehicleId = end.FirstRegisteredVehicleId;
                 while (vehicleId != 0)
                 {
 
                     VehicleState v = vehStateMan._GetVehicleState(vehicleId);
-                    //hopefully this fixes, checks to see if vehicle is valid before using it
+
                     if (v.CheckValidity(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]))
                     {
                        
@@ -259,25 +243,16 @@ namespace TrafficManager.API
                 }
               
             }
-            //TODO sort out blocked target segments
-            //for (int i = 0; i < longestWaiting.Length; i++)
-            //{
-            //    if(longestWaiting[i] > 25)
-            //    {
-            //        queueLengths[i] = ushort.MaxValue;
-            //    }
-            //}
 
-            //if (nodeGeometry.NodeId.Equals(20832))
-            //{
-            //    for (int p = 0; p< queueLengths.Length; p++)
-            //    {
-            //        Log.Info($"index: {p} queuelengths: {queueLengths[p]}");
+            for (int i = 0; i < longestWaiting.Length; i++)
+            {
+                if(longestWaiting[i] > 25)
+                {
+                    queueLengths[i] = ushort.MaxValue;
+                }
+            }
 
-            //    }
-            //    //print queueLengths
-            //}
-            //Log.Info($"queue len waiting set to max. ID: {nodeGeometry.NodeId}");
+
             Array.Sort(queueLengths, directionOrdering, Comparer.Default);
             Array.Reverse(directionOrdering);
             //Log.Info($"sort and reverse ID: {nodeGeometry.NodeId}");
@@ -304,19 +279,7 @@ namespace TrafficManager.API
                 }
             }
 
-            //if (nodeGeometry.NodeId.Equals(20832))
-            //{
-            //    for (int p= 0; p < currentSubList[0].LightValues.Length; p++)
-            //    {
-            //        Log.Info($"current sub list light value index {p}: {currentSubList[0].LightValues[p]}");
-            //    }
-
-            //    for (int p = 0; p < directionOrdering.Length; p++)
-            //    {
-            //        Log.Info($"current ordering index {p}: {directionOrdering[p]}");
-            //    }
-
-            //}
+         
             if (!phases.IndexOf(currentSubList[0]).Equals(currentStep))
             {
                 nodeGeometry.numTicks = 0;
@@ -325,7 +288,12 @@ namespace TrafficManager.API
             return phases.IndexOf(currentSubList[0]);
         }
 
-        public static int getNextIndexOptimal(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
+
+
+        //This function will get the next index according to the AWAITS++ algorithm. Essentially the algorithm will work out 
+        //the best next phase by calculating the number of cars each phase could service, and select the maximum value. Phases where
+        //cars have been waiting too long are prioritised to prevent starvation.
+        public static int getNextIndexAWAITSPlusPlus(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
 
 
@@ -358,11 +326,6 @@ namespace TrafficManager.API
                 {
                     continue; // skip invalid segment
                 }
-
-
-
-
-
 
                 ushort importance = 0;
                 ushort vehicleId = end.FirstRegisteredVehicleId;
@@ -489,6 +452,8 @@ namespace TrafficManager.API
             return bestIndex;
         }
 
+
+        //This function will build a list of non-conflicting phases. There may be repeats of phases in the list. 
         public static List<Phase> buildOrderedPhases(NodeGeometry node, out ushort[] segArray)
         {
             int numSegs;
@@ -503,6 +468,9 @@ namespace TrafficManager.API
 
         }
 
+
+        //This will build a list of non-conflicting phases that has no repeating phases. There is rarely a reason for an algorithm to 
+        // need repeated phases but it's also sometimes not an issue. This is generally a superior function to buildOrderedPhases. 
         public static List<Phase> buildPhasesNoRedundancy(NodeGeometry node, out ushort[] segArray)
         {
             int numSegs;
@@ -541,6 +509,9 @@ namespace TrafficManager.API
 
         }
 
+
+
+        //This function gets the turn possibilities for a particular road entering a particular intersection.
         private static bool[] getTurnPossibilities(ushort[] segArray, int currentIndex, NodeGeometry node)
         {
             bool[] turnPossibilities = new bool[3];
@@ -589,6 +560,10 @@ namespace TrafficManager.API
             return turnPossibilities;
         }
 
+
+
+        //This function builds a list of non-conflicting phases for an input intersection. It calls a recursive builder function to construct
+        // the list, then returns that list.
         public static List<Phase> phaseBuilder(ushort[] segArray, int numSegs, NodeGeometry node)
         {
             List<Phase> phaseList = new List<Phase>();
@@ -715,6 +690,9 @@ namespace TrafficManager.API
             return phaseList;
         }
 
+
+        //This function gets the segments of an input node in either a clockwise or anticlockwise order, depending on the side of
+        // the road the cars in the city drive on. 
         public static ushort[] getOrderedSegments(NodeGeometry node, out int numSegs)
         {
             ushort[] tempSegArray = new ushort[4];
@@ -795,6 +773,8 @@ namespace TrafficManager.API
         }
 
 
+        //This function is used for building a list of non-conflicting phases for an input intersection. The function recursively calls 
+        // itself to check and build phases.
         public static void recursiveBuilder(int depth, ArrayList segmentsSeen, Phase phase, bool[] conflictArray, ushort[] segArray, int initialSegmentIndex, int numSegs, List<Phase> phases, NodeGeometry node)
         {
             
@@ -1102,16 +1082,16 @@ namespace TrafficManager.API
 
 
         }
+
+
+
         public static long journeysProcessed = 0;
         public static long totalVehicleJourneyTime = 0;
         public static bool firstIteration = true;
         public static int recordingTime = 0;
         
 
-     
-        
-        
-
+        //This function updates the journey times of all the vehicles in the simulation. 
         public static void journeyTimeUpdate()
         {
             ushort targetBuildingId = 0;
@@ -1158,51 +1138,12 @@ namespace TrafficManager.API
                     state.alreadyParked = true;
                 }
             }
-                //if (!isParking && firstIteration && (v.m_targetBuilding != 0))
-                //{
-                //    state.alreadyEnRoute = true;
-                //}
-
-            //    if (!isParking && !state.alreadyEnRoute)
-            //    {
-            //        //Log.Info($"got here (not parked)");
-                    
-            //    }
-
-            //    //Log.Info($"got here");
-            //    if (firstIteration && isParking)
-            //    {
-            //        state.alreadyEnRoute = true;
-            //        state.alreadyParked = true;
-            //    }
-            //    if (state.alreadyParked == false)
-            //    {
-
-            //        if (isParking && !state.alreadyEnRoute)
-            //        {
-
-            //            //Log.Info($"got here (parked)");
-                        
-            //            journeysProcessed++;
-            //            totalVehicleJourneyTime += state.JourneyTime;
-            //            state.JourneyTime = 0;
-            //            state.alreadyParked = true;
-            //        }
-            //    }
-            //    if (isParking && state.alreadyEnRoute && !firstIteration)
-            //    {
-            //        state.alreadyEnRoute = false;
-            //        state.alreadyParked = true;
-            //    }
-                
-            //    //if (isParking)
-            //    //{
-            //    //    //Log.Info($"v id: {state.getID()}");
-            //    //}
-            //}
+            
            
             firstIteration = false;
         }
+
+        //This function cleans up the journey data after data recording. 
         public static void cleanUpJourneyData()
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
@@ -1214,6 +1155,8 @@ namespace TrafficManager.API
                 state.JourneyTime = 0;
             }
         }
+
+        //This function increments the wait times of the vehicles waiting at a particular intersection.
         public static void incrementWait(NodeGeometry nodeGeometry)
         {
             VehicleStateManager vehStateMan = VehicleStateManager.Instance;
@@ -1304,6 +1247,8 @@ namespace TrafficManager.API
         }
 
         
+        //This function is for you to create your own ATCS. When the the Toggle My ATCS button is clicked, all of the traffic lights in the 
+        //city will call this function every second. Use any of the other getNextIndex functions as guides for creating your own function. 
         public static int getNextIndexMyATCS(int currentStep, int noOfSteps, NodeGeometry nodeGeometry, List<FlexibleTrafficLightsStep> phases)
         {
             //TODO FOR CUSTOM ALGORITHM

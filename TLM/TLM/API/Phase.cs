@@ -7,6 +7,9 @@ using TrafficManager.Geometry;
 
 namespace TrafficManager.API
 {
+
+    //This class represents a phase and is used when building a phase with non-conflicting movements. 
+    //It contains a list of segments and directions cars will move from those segments.
     public class Phase
     {
         ushort[] segments;
@@ -38,7 +41,6 @@ namespace TrafficManager.API
         {
             segments[index] = seg;
             directions[index] = dir;
-            //Log.Info($"ADDING SEGMENT AND DIRECTION TO PHASE: {seg} - {dir}");
         }
 
         public int compare(Phase phase, ushort[] segArray, NodeGeometry node)

@@ -21,6 +21,8 @@ using System.IO;
 
 namespace TrafficManager.UI.MainMenu {
 
+    //This is the UIPanel class for the traffic algorithm application and data recording panel.
+    //This class contains functions that are executed when buttons on the panel are clicked. 
 	public class AlgorithmPanel : UIPanel {
         private static bool _areAllTrafficLightsRed = false;
         private static List<NodeRecordingObject> nodeDataObjects =new List<NodeRecordingObject>();
@@ -45,8 +47,8 @@ namespace TrafficManager.UI.MainMenu {
         UIButton m_algoButton3;
         UIButton m_testing;
         UIButton m_recording;
-        //private UILabel optionsLabel;
 
+        //Sets up the panel visuals and links functions to buttons. 
         public override void Start() {
             this.relativePosition = new Vector3(15f, 120f);
             isVisible = false;
@@ -59,7 +61,7 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton.height = 30;
             m_algoButton.relativePosition = new Vector3(15f, 20f);
             m_algoButton.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLightsMoody(component, eventParam);
+                clickToggleAllTrafficLightsAWAITS(component, eventParam);
             };
             m_algoButton2 = this.AddUIComponent<UIButton>();
             m_algoButton2.text = "Toggle AWAITS++";
@@ -70,7 +72,7 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton2.height = 30;
             m_algoButton2.relativePosition = new Vector3(15f, 60f);
             m_algoButton2.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLightsMoodyOptimal(component, eventParam);
+                clickToggleAllTrafficLightsAWAITSPlusPlus(component, eventParam);
             };
             m_algoButton3 = this.AddUIComponent<UIButton>();
             m_algoButton3.text = "Toggle Round Robin";
@@ -125,9 +127,6 @@ namespace TrafficManager.UI.MainMenu {
 			height = MENU_HEIGHT;
 
 			VersionLabel = AddUIComponent<VersionLabel>();
-			//optionsLabel = AddUIComponent<OptionsLabel>();
-
-			
 
 			GlobalConfig config = GlobalConfig.Instance;
 			Vector3 pos = new Vector3(config.MainMenuX, config.MainMenuY);
@@ -143,11 +142,13 @@ namespace TrafficManager.UI.MainMenu {
 			Drag.height = TOP_BORDER;
 			Drag.enabled = !GlobalConfig.Instance.MainMenuPosLocked;
 		}
-
+    
+        //Sets whether the menu is locked in place.
 		internal void SetPosLock(bool lck) {
 			Drag.enabled = !lck;
 		}
 
+        //Updates values when the menu is moved on the screen.
 		protected override void OnPositionChanged() {
 			GlobalConfig config = GlobalConfig.Instance;
 
@@ -163,6 +164,8 @@ namespace TrafficManager.UI.MainMenu {
 			}
 			base.OnPositionChanged();
 		}
+
+        //Updates the timer on the recording button. 
         public void updateRecordingTime()
         {
             m_recording.text = "Stop("+(APIget.recordingTime.ToString())+")";
@@ -208,6 +211,8 @@ namespace TrafficManager.UI.MainMenu {
 
             }
         }
+
+        //Adds node information to the list of node data objects once recording is finished.
         public static void SetNodeData(NodeGeometry g,int longestWait)
         {
             NodeRecordingObject n = new NodeRecordingObject();
@@ -236,17 +241,17 @@ namespace TrafficManager.UI.MainMenu {
                 end.totalWaitTime = 0;
 
             }
-            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got before");
+
             n.avergaeWaitTime = (double)n.totalWaitingTime / (double)n.totalVehiclesProcessed;
-            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got past");
+
             n.nodeID = g.NodeId;
             n.noOfSegments = g.NumSegmentEnds;
             n.longestWait = longestWait;
             
             nodeDataObjects.Add(n);
-            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got out");
         }
         
+        //Function that executes when the user toggles recording off.
         private static void stopRecording(UIComponent component, UIMouseEventParameter eventParam)
         {
             StringBuilder csv = new StringBuilder();
@@ -297,13 +302,8 @@ namespace TrafficManager.UI.MainMenu {
                         APIget.isRecording = false;
                         totalWaitTime = totalWaitTime + end.totalWaitTime;
                         totalProcessed = totalProcessed + end.carsProcessed;
-                        //end.carsProcessed = 0;
-                        //end.totalWaitTime = 0;
-                        
-
-
                     }
-                    //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "got here");
+
                     if(longestWait> APIget.recordingTime)
                     {
                         longestWait = APIget.recordingTime;
@@ -360,12 +360,11 @@ namespace TrafficManager.UI.MainMenu {
 
             File.WriteAllText(path,csv.ToString());
             nodeDataObjects.Clear();
-            
-            //APIget.ClearNodeData();
         }
     
 
-        private static void clickToggleAllTrafficLightsMoody(UIComponent component, UIMouseEventParameter eventParam)
+        //Function that executes if AWAITS algorithms is toggled.  
+        private static void clickToggleAllTrafficLightsAWAITS(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
@@ -436,11 +435,6 @@ namespace TrafficManager.UI.MainMenu {
                         }
                         sim.FlexibleLight.Start();
                         Log.Info($"started");
-                        
-
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
-
-
                     }
 
                 }
@@ -453,6 +447,8 @@ namespace TrafficManager.UI.MainMenu {
             _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
         }
 
+
+        //Function that is executed when Round Robin algorithm is toggled. 
         private static void clickToggleAllTrafficLightsRR(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
@@ -461,7 +457,6 @@ namespace TrafficManager.UI.MainMenu {
 
             bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
 
@@ -493,14 +488,8 @@ namespace TrafficManager.UI.MainMenu {
                         List<ushort> nodeGroup = new List<ushort>();
                         nodeGroup.Add(i);
 
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
-
                         sim.SetupFlexibleTrafficLight(nodeGroup, 2);
 
-
-                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-
-                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
                         ushort[] segArray;
                         List<Phase> phases = APIget.buildPhasesNoRedundancy(nodeGeometry, out segArray);
 
@@ -523,23 +512,13 @@ namespace TrafficManager.UI.MainMenu {
                             foreach (Traffic.ExtVehicleType vehicleType in segmentLights.VehicleTypes)
                             {
                                 CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
-                                segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
-                                //if (segmentlight.segmentid.equals(28062))
-                                //{
-                                //    log.info($"here");
-                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
-                                //}
+
                                 sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
                             }
 
                         }
                         sim.FlexibleLight.Start();
                         Log.Info($"started");
-
-
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
-
-
                     }
 
                 }
@@ -552,7 +531,10 @@ namespace TrafficManager.UI.MainMenu {
             _areAllTrafficLightsRed = !_areAllTrafficLightsRed;
         }
 
-        private static void clickToggleAllTrafficLightsMoodyOptimal(UIComponent component, UIMouseEventParameter eventParam)
+
+
+        //Function that is executed when AWAITS++ is toggled. 
+        private static void clickToggleAllTrafficLightsAWAITSPlusPlus(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
             var frame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
@@ -563,7 +545,6 @@ namespace TrafficManager.UI.MainMenu {
             bool pedestrians;
             bool firstMaster = true;
             TrafficLightSimulationManager tlsMan = TrafficLightSimulationManager.Instance;
-            // DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "toggled");
             for (ushort i = 0; i < netManager.m_nodes.m_size; i++)
             {
 
@@ -595,14 +576,8 @@ namespace TrafficManager.UI.MainMenu {
                         List<ushort> nodeGroup = new List<ushort>();
                         nodeGroup.Add(i);
 
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Current Node: " + i);
-
                         sim.SetupFlexibleTrafficLight(nodeGroup, 1);
-
-
-                        //NodeGeometry nodeGeometry = NodeGeometry.Get(i);
-
-                        //Instead of next foreach statement API Call to figure out possible steps and add each one of those
+                        
                         ushort[] segArray;
                         List<Phase> phases = APIget.buildOrderedPhases(nodeGeometry, out segArray);
 
@@ -626,22 +601,14 @@ namespace TrafficManager.UI.MainMenu {
                             {
                                 CustomSegmentLight segmentLight = segmentLights.GetCustomLight(vehicleType);
                                 segmentLight.CurrentMode = CustomSegmentLight.Mode.All;
-                                //if (segmentlight.segmentid.equals(28062))
-                                //{
-                                //    log.info($"here");
-                                //    segmentlight.currentmode = customsegmentlight.mode.singleleft;
-                                //}
+
                                 sim.FlexibleLight.ChangeLightMode(end.SegmentId, vehicleType, segmentLight.CurrentMode);
                             }
 
                         }
                         sim.FlexibleLight.Start();
                         Log.Info($"started");
-
-
-                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Is Flexible Light: " + sim.IsFlexibleLight().ToString());
-
-
+                        
                     }
 
                 }
@@ -656,6 +623,9 @@ namespace TrafficManager.UI.MainMenu {
 
 
 
+        //Function that executes when the Toggle My ATCS button is clicked. You are most welcome to change this function and use it as
+        // a guide to make more buttons. Currently this function transforms every traffic light so that they will call APIget.getNextIndexMyATCS()
+        // every second, which currently does nothing, so the traffic lights will not work. 
         private static void toggleMyATCS(UIComponent component, UIMouseEventParameter eventParam)
         {
             var netManager = Singleton<NetManager>.instance;
