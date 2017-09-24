@@ -1,13 +1,13 @@
 ## Setting up a development environment
 - Install Steam (http://store.steampowered.com/about/).
-- Once steam is installed, use steam to purchase Cities: Skylines.
-- Install Cities: Skylines through steam.
+- Once Steam is installed, use Steam to purchase Cities: Skylines.
+- Install Cities: Skylines through Steam.
 - Open Cities: Skylines.
-- Once the Main menu for Cities: Skylines has loaded, select steam workshop.
+- Once the Main menu for Cities: Skylines has loaded, select Steam Workshop.
 - In the Steam overlay that appears, enter in the search bar: slowspeed.
-- Click the green '+' that appears when you hover over the search result.
+- Click the green '+' that appears when you hover over the search result called Slow Speed by Scott.
 - Then type in the search bar: sky tower.
-- Click the green '+' that appears when you hover over the search result with 4 stars.
+- Click the green '+' that appears when you hover over the search result with 4 stars called Sky Tower by Krodge.
 - Exit the overlay and then the game.
 - Install Visual Studio with .NET framework 4.0 or above (https://www.visualstudio.com/).
 - Install git (https://git-scm.com/downloads).
@@ -25,12 +25,12 @@
 - Now within your project folder navigate to TLM/TLM/bin/release and copy TrafficManager.dll.
 - Navigate to C:\Users\"your pc name"\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods.
 - Create a folder here called TrafficManager and paste TrafficManager.dll into this folder.
-- Then run Cities: Skylines from steam .
+- Then run Cities: Skylines from Steam.
 - Select Content Manager.
 - Select Mods.
 - Enable Traffic Manager: President Edition and Slowspeed.
 - Return to the main menu.
-- Select Load game.
+- Select Load Game.
 - Select the Auckland City save file and load it.
 - The Auckland City map should load up with the mod enabled.
 
