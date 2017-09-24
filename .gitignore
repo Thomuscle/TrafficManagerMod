@@ -179,6 +179,12 @@ UpgradeLog*.htm
 *.bim.layout
 *.bim_*.settings
 
+# Raw Data 
+!AWAITS++.csv
+!AWAITS.csv
+!ROUND-ROBIN.csv
+!overall graphs.xlsx
+
 # Microsoft Fakes
 FakesAssemblies/
 /logo/
