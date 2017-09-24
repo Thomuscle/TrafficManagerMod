@@ -28,8 +28,10 @@ namespace TrafficManager.UI.MainMenu {
         private static List<NodeRecordingObject> nodeDataObjects =new List<NodeRecordingObject>();
         private const int NUM_BUTTONS_PER_ROW = 6;
 		private const int NUM_ROWS = 2;
-
-		public const int VSPACING = 5;
+        public bool active1 = false;
+        public bool active2 = false;
+        public bool active3 = false;
+        public const int VSPACING = 5;
 		public const int HSPACING = 5;
 		public const int TOP_BORDER = 25;
 		public const int BUTTON_SIZE = 30;
@@ -61,7 +63,21 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton.height = 30;
             m_algoButton.relativePosition = new Vector3(15f, 20f);
             m_algoButton.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLightsAWAITS(component, eventParam);
+                if(!active2 && !active3)
+                {
+                    if (m_algoButton.text.Equals("Toggle AWAITS"))
+                    {
+                        active1 = true;
+                        m_algoButton.text = "Toggle AWAITS(a)";
+                    }
+                    else
+                    {
+                        active1 = false;
+                        m_algoButton.text = "Toggle AWAITS";
+                    }
+                    clickToggleAllTrafficLightsAWAITS(component, eventParam);
+                }
+                
             };
             m_algoButton2 = this.AddUIComponent<UIButton>();
             m_algoButton2.text = "Toggle AWAITS++";
@@ -72,7 +88,20 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton2.height = 30;
             m_algoButton2.relativePosition = new Vector3(15f, 60f);
             m_algoButton2.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLightsAWAITSPlusPlus(component, eventParam);
+                if (!active1 && !active3)
+                {
+                    if (m_algoButton2.text.Equals("Toggle AWAITS++"))
+                    {
+                        active2 = true;
+                        m_algoButton2.text = "Toggle AWAITS++(a)";
+                    }
+                    else
+                    {
+                        active2 = false;
+                        m_algoButton2.text = "Toggle AWAITS++";
+                    }
+                    clickToggleAllTrafficLightsAWAITSPlusPlus(component, eventParam);
+                }
             };
             m_algoButton3 = this.AddUIComponent<UIButton>();
             m_algoButton3.text = "Toggle Round Robin";
@@ -83,8 +112,22 @@ namespace TrafficManager.UI.MainMenu {
             m_algoButton3.height = 30;
             m_algoButton3.relativePosition = new Vector3(15f, 100f);
             m_algoButton3.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                clickToggleAllTrafficLightsRR(component, eventParam);
+                if (!active1 && !active2)
+                {
+                    if (m_algoButton3.text.Equals("Toggle Round Robin"))
+                    {
+                        active3 = true;
+                        m_algoButton3.text = "Toggle Round Robin(a)";
+                    }
+                    else
+                    {
+                        active3 = false;
+                        m_algoButton3.text = "Toggle Round Robin";
+                    }
+                    clickToggleAllTrafficLightsRR(component, eventParam);
+                }
             };
+
             m_testing = this.AddUIComponent<UIButton>();
             m_testing.text = "Toggle My ATCS";
             m_testing.normalBgSprite = "SubBarButtonBase";
@@ -94,7 +137,7 @@ namespace TrafficManager.UI.MainMenu {
             m_testing.height = 30;
             m_testing.relativePosition = new Vector3(15f, 140f);
             m_testing.eventClick += delegate (UIComponent component, UIMouseEventParameter eventParam) {
-                toggleMyATCS(component, eventParam);
+                //toggleMyATCS(component, eventParam);
             };
 
             m_recording = this.AddUIComponent<UIButton>();
